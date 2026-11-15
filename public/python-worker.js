@@ -21,7 +21,7 @@ self.onmessage = async ({data}) => {
     send('error', String(error));
     return;
   }
-  send('status', 'Running Python…');
+  send('status', 'Running Python…', {phase: 'execution'});
   let outputLength = 0;
   let limitReached = false;
   function emit(kind, text) {

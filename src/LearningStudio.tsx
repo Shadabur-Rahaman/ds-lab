@@ -1,7 +1,8 @@
-import {ArrowDown, ArrowRight, ArrowUpRight, Check, Circle, Clock, FlaskConical} from 'lucide-react';
+import {ArrowDown, ArrowRight, ArrowUpRight, Check, Circle, Clock, FlaskConical, Map} from 'lucide-react';
 import {CafeChart, Glyph} from './components';
 import {lessons, type LessonId} from './data';
 import type {Progress} from './lib/progress';
+import {StatisticsFeature} from './StatisticsStudio';
 import {appUrl} from './lib/urls';
 
 export type Lesson = (typeof lessons)[number];
@@ -29,7 +30,7 @@ export function Home({progress, next, openLesson, openPage}: {
           <button className="studio-start" onClick={() => openLesson(next.id)}>
             {lessonState(progress, next.id) === 'In progress' ? 'Resume lesson' : lessonState(progress, next.id) === 'Completed' ? 'Review lessons' : 'Start learning'} <ArrowRight size={18}/>
           </button>
-          <button className="studio-path" onClick={() => openPage('/roadmap')}>See the roadmap <ArrowUpRight size={16}/></button>
+          <button className="studio-path" onClick={() => openLesson('statistics')}>Try the Statistics Studio <ArrowUpRight size={16}/></button>
         </div>
       </div>
       <div className="studio-preview">
@@ -37,6 +38,7 @@ export function Home({progress, next, openLesson, openPage}: {
         <CafeChart compact/>
       </div>
     </section>
+    <StatisticsFeature onOpen={() => openLesson("statistics")}/>
     <section className="practice-section" aria-labelledby="practice-title">
       <header className="practice-header">
         <div><h2 id="practice-title">Start with a question</h2><p>Three lessons you can open and try today.</p></div>
@@ -51,6 +53,7 @@ export function Home({progress, next, openLesson, openPage}: {
         </button>)}
       </div>
     </section>
+    <a className="studio-project" href={appUrl('/roadmap')}><span className="value-icon purple"><Map size={22}/></span><span><strong>See the learning roadmap</strong><small>Explore all four stages of the curriculum.</small></span><ArrowRight size={19}/></a>
     <a className="studio-project" href={appUrl('/projects/iris')}>
       <span className="value-icon green"><Glyph name="folder"/></span>
       <span><strong>Investigate the Iris dataset</strong><small>Compare flower measurements, test a rule, and export your findings.</small></span>

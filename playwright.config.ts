@@ -33,13 +33,10 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: isStatic
-      ? 'npx vite preview --host 127.0.0.1 --port 5174 --strictPort'
-      : 'npm run dev -- --host 127.0.0.1 --port 5174 --strictPort',
-
+  webServer: isStatic ? undefined : {
+    command: 'npm run dev -- --host 127.0.0.1 --port 5174 --strictPort',
     url: baseURL,
-    reuseExistingServer: !process.env.CI && !isStatic,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
 });

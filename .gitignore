@@ -9,3 +9,4 @@ qa/
 .vite-cache/
 debug.log
 DS_LAB_Milestone_*.zip
+.ds-lab-release/

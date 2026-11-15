@@ -1,25 +1,6 @@
-import {test,expect} from '@playwright/test';
-import {existsSync, readFileSync, statSync} from 'node:fs';
-import {resolve, sep} from 'node:path';
+import {test,expect} from './fixtures';
+import {readFileSync} from 'node:fs';
 
-test.beforeEach(async ({page}) => {
- if (process.env.DS_TEST_STATIC !== '1') return;
- const root = resolve('dist');
- const base = process.env.DS_LAB_BASE || '/';
- await page.route('http://127.0.0.1:5174/**', async (route) => {
-  const requested = decodeURIComponent(new URL(route.request().url()).pathname);
-  if (!requested.startsWith(base)) return route.fulfill({status:404});
-  const pathname = '/' + requested.slice(base.length);
-  const file = resolve(root, '.' + pathname);
-  if (file !== root && !file.startsWith(root + sep)) return route.abort();
-  if (existsSync(file) && statSync(file).isFile()) return route.fulfill({path:file});
-  if (route.request().isNavigationRequest()) {
-   const index = resolve(file, 'index.html');
-   return route.fulfill({path:existsSync(index) ? index : resolve(root,'404.html')});
-  }
-  return route.fulfill({status:404});
- });
-});
 test('navigation, catalog, lesson interactions, responsive layout and theme',async({page},info)=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('./');await expect(page.getByRole('heading',{name:/Make sense of real data/})).toBeVisible();
