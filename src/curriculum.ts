@@ -1,6 +1,7 @@
 import {lessons, type LearningId} from './data';
 import {analysisLessons, chartLessonId, retailProjectId} from './analysisLessons';
 import {irisClassificationId, mlLessons} from './mlLessons';
+import {deepLessons, neuralProjectId} from './deepLessons';
 import {sqlLessons} from './sqlLessons';
 import type {Progress} from './lib/progress';
 
@@ -25,6 +26,9 @@ export const stages: {title: string; outcome: string; items: LearningItem[]}[] =
   {title: 'Machine Learning', outcome: 'Train simple models and evaluate them on held-out data.', items: mlLessons.map(lesson => ({
     id: lesson.id, title: lesson.title, description: lesson.task, course: 'Machine Learning', color: 'purple', icon: 'brain',
   }))},
+  {title:'Deep Learning', outcome:'Trace, train, and evaluate a neural network.', items:deepLessons.map(item=>({
+    id:item.id,title:item.title,description:item.task,course:'Deep Learning',color:'purple',icon:'layers',
+  }))},
 ];
 
 export const track = stages.flatMap(stage => stage.items);
@@ -32,6 +36,7 @@ export const projects = [
   {id: 'iris-eda', title: 'Iris exploratory data analysis', path: '/projects/iris', preparation: 'Visualization'},
   {id: retailProjectId, title: 'Retail Sales Data Cleaning & Exploratory Analysis', path: '/projects/retail', preparation: 'Pandas and Visualization'},
   {id: irisClassificationId, title: 'Iris Classification', path: '/projects/iris-classification', preparation: 'Machine Learning'},
+  {id:neuralProjectId,title:'Neural Network Classification',path:'/projects/neural-classification',preparation:'Deep Learning'},
 ] as const;
 
 export const learningItems: LearningItem[] = [...track,
@@ -39,6 +44,7 @@ export const learningItems: LearningItem[] = [...track,
     course: 'Guided projects', color: 'green', icon: 'folder'},
   {id: irisClassificationId, title: projects[2].title, description: 'Train a classifier and report held-out results.',
     course: 'Guided projects', color: 'green', icon: 'folder'},
+  {id:neuralProjectId,title:projects[3].title,description:'Train a neural network and explain its held-out predictions.',course:'Guided projects',color:'green',icon:'folder'},
 ];
 
 export function lessonState(progress: Progress, id: LearningId) {

@@ -6,7 +6,8 @@ const routes = ['dashboard', 'courses', 'roadmap', 'learn/introduction', 'learn/
  'learn/numpy-arrays', 'learn/numpy-slicing', 'learn/numpy-operations', 'learn/numpy-broadcasting', 'learn/numpy-axis', 'learn/numpy-aggregation',
  'learn/pandas-frames', 'learn/pandas-csv', 'learn/pandas-selection', 'learn/pandas-quality', 'learn/pandas-groupby', 'learn/pandas-merge',
  'learn/visualization-lab', 'learn/ml-intro', 'learn/ml-regression', 'learn/ml-knn', 'learn/ml-split', 'learn/ml-metrics', 'learn/ml-overfit',
- 'projects/iris', 'projects/retail', 'projects/iris-classification'];
+ 'learn/dl-neurons', 'learn/dl-activations', 'learn/dl-forward', 'learn/dl-descent', 'learn/dl-backprop', 'learn/dl-training',
+ 'projects/iris', 'projects/retail', 'projects/iris-classification', 'projects/neural-classification'];
 for (const route of routes) {
  const directory = `dist/${route}`;
  mkdirSync(directory, {recursive: true});

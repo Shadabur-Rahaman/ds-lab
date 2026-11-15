@@ -11,11 +11,11 @@ test('beginner path, planned chapters and resume agree with saved learner activi
   },storageKey);
   await page.goto('./');
   const path = page.getByRole('list',{name:'Recommended learning path'});
-  await expect(path.getByRole('listitem')).toHaveCount(7);
+  await expect(path.getByRole('listitem')).toHaveCount(8);
   expect(await path.getByRole('button').allTextContents()).toEqual([
     expect.stringContaining('Data Science Foundations'), expect.stringContaining('Statistics'),
     expect.stringContaining('SQL'), expect.stringContaining('NumPy'), expect.stringContaining('Pandas'),
-    expect.stringContaining('Visualization'), expect.stringContaining('Machine Learning'),
+    expect.stringContaining('Visualization'), expect.stringContaining('Machine Learning'), expect.stringContaining('Deep Learning'),
   ]);
   await expect(path.getByRole('button',{name:/Data Science Foundations/})).toContainText('1 / 1 complete');
   await page.goto('./dashboard');

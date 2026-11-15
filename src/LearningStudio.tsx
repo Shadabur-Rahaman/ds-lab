@@ -44,7 +44,7 @@ export function Home({progress, next, openLesson, openPage}: {
       </header>
       <LearningPath progress={progress} openLesson={openLesson}/>
     </section>
-    <a className="studio-project" href={appUrl('/roadmap')}><span className="value-icon purple"><Map size={22}/></span><span><strong>See the learning roadmap</strong><small>See the seven stages and their recommended order.</small></span><ArrowRight size={19}/></a>
+    <a className="studio-project" href={appUrl('/roadmap')}><span className="value-icon purple"><Map size={22}/></span><span><strong>See the learning roadmap</strong><small>See the stages and their recommended order.</small></span><ArrowRight size={19}/></a>
     <a className="studio-project" href={appUrl('/projects/iris')}>
       <span className="value-icon green"><Glyph name="folder"/></span>
       <span><strong>Investigate the Iris dataset</strong><small>Compare flower measurements, test a rule, and export your findings.</small></span>
@@ -88,7 +88,7 @@ export function LessonJourney({id, progress, onOpen}: {id: LearningId; progress:
     <div><strong>{stage.title}</strong><span>{index + 1} of {stage.items.length} · {lessonState(progress, id)}</span></div>
     {previous && <button className="button small" onClick={() => onOpen(previous.id)}>Previous: {previous.title}</button>}
     {next && <button className="button primary small" onClick={() => onOpen(next.id)}>Next: {next.title} <ArrowRight size={14}/></button>}
-    {!next && <a className="button primary small" href={appUrl('/projects/iris-classification')}>Try Iris Classification <ArrowRight size={14}/></a>}
+    {!next && <a className="button primary small" href={appUrl('/projects/neural-classification')}>Try Neural Network Classification <ArrowRight size={14}/></a>}
   </nav>;
 }
 

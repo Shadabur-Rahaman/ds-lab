@@ -1,0 +1,13 @@
+.neural-controls {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
+.neural-controls > * {min-width:0}
+.neural-settings {min-inline-size:0;border:1px solid var(--line);border-radius:10px;margin:12px 0;padding:10px}
+.neural-plot {display:block;width:100%;max-width:460px;height:auto;margin:10px auto;color:var(--muted)}
+.neural-plot text {fill:currentColor;font-size:12px}
+.neural-network circle {fill:var(--surface);stroke:var(--accent);stroke-width:2}
+.neural-point {stroke:var(--text);stroke-width:.65}
+.neural-point.class-0,.neural-region.class-0 {fill:#14876f}
+.neural-point.class-1,.neural-region.class-1 {fill:#9c66e0}
+.neural-region {opacity:.26}
+.neural-studio details {margin-block:8px}
+.neural-studio fieldset:disabled {opacity:.8}
+@media(max-width:490px){.neural-controls {grid-template-columns:minmax(0,1fr)}}
