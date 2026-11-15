@@ -1,3 +1,4 @@
+import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
 import {useEffect, useState} from 'react';
 import {Download} from 'lucide-react';
 import {DataTable} from './AnalysisStudio';
@@ -18,7 +19,7 @@ export function IrisClassification({passed, exported, onPass, onExport}: {
   const [seed, setSeed] = useState(17);
   const [share, setShare] = useState(30);
   const [k, setK] = useState(5);
-  const [conclusion, setConclusion] = useState(() => {try {return localStorage.getItem(findingKey) ?? '';} catch {return '';}});
+  const [conclusion, setConclusion] = useState(() => {try {return readLearnerText(findingKey) ?? '';} catch {return '';}});
   const [storageError, setStorageError] = useState(false);
   const [trained, setTrained] = useState<{
     model: ReturnType<typeof fitIris>; columns: number[]; seed: number; share: number; k: number; binary: boolean;
@@ -39,6 +40,7 @@ export function IrisClassification({passed, exported, onPass, onExport}: {
   const model = trained?.model;
   const mistakes = model?.test.flatMap((row, index) => row.label === model.predictions[index] ? [] :
     [[index + 1, ...row.features, row.label, model.predictions[index]]]) ?? [];
+  useEffect(()=>watchLearnerText(findingKey, setConclusion), []);
   function download() {
     if (!trained || stale) return;
     const {model, columns, seed, share, k, binary} = trained;
@@ -122,7 +124,7 @@ export function IrisClassification({passed, exported, onPass, onExport}: {
         <label htmlFor="iris-ml-conclusion">Conclusion</label>
         <textarea id="iris-ml-conclusion" maxLength={6000} value={conclusion} onChange={event=>{
           setConclusion(event.target.value);
-          try {localStorage.setItem(findingKey,event.target.value); setStorageError(false);} catch {setStorageError(true);}
+          try {if(!writeLearnerText(findingKey,event.target.value)) throw new Error('Draft storage unavailable.'); setStorageError(false);} catch {setStorageError(true);}
         }}/>
         {storageError && <p role="status">This browser could not save your conclusion. Export a copy before leaving.</p>}
         <button className="button primary" disabled={!trained || stale || !conclusion.trim()} onClick={download}><Download size={16}/> Export Iris report</button>

@@ -1,3 +1,4 @@
+import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Metrics, PracticeQuestion, RangeControl} from './StudioControls';
 import {Curve, display} from './NeuralPlot';
@@ -39,7 +40,7 @@ export function TrainingLab({project = false, onExport}: {project?: boolean; onE
   const [busy,setBusy] = useState(false);
   const [status,setStatus] = useState('Ready to train.');
   const [error,setError] = useState('');
-  const [finding,setFinding] = useState(() => {try {return project ? localStorage.getItem('ds-lab:neural-report') ?? '' : '';} catch {return '';}});
+  const [finding,setFinding] = useState(() => {try {return project ? readLearnerText('ds-lab:neural-report') ?? '' : '';} catch {return '';}});
   const [storageError,setStorageError] = useState(false);
   const job = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const dataset = useMemo(()=>neuralDataset(seed,share/100,noise),[seed,share,noise]);
@@ -47,6 +48,7 @@ export function TrainingLab({project = false, onExport}: {project?: boolean; onE
   const result = useMemo(()=>state ? evaluateNetwork(state.params,dataset.test) : null,[state,dataset.test]);
   const trainResult = useMemo(()=>state ? evaluateNetwork(state.params,dataset.train) : null,[state,dataset.train]);
 
+  useEffect(()=>project ? watchLearnerText('ds-lab:neural-report', setFinding) : undefined, [project]);
   function reset() {
     clearTimeout(job.current);
     setBusy(false);setState(undefined);
@@ -145,7 +147,7 @@ export function TrainingLab({project = false, onExport}: {project?: boolean; onE
     {project && <section className="analysis-panel"><h2>Record what you learned</h2>
       <label>Conclusion<textarea value={finding} maxLength={6000} onChange={event=>{
         const value=event.target.value;setFinding(value);
-        try {localStorage.setItem('ds-lab:neural-report',value);setStorageError(false);} catch {setStorageError(true);}
+        try {if(!writeLearnerText('ds-lab:neural-report',value)) throw new Error('Draft storage unavailable.');setStorageError(false);} catch {setStorageError(true);}
       }}/></label>
       {storageError && <p role="status">This browser could not save your conclusion. Copy or export it before leaving.</p>}
       <button className="button primary" disabled={!state || !finding.trim()} onClick={exportReport}>Export neural report</button>

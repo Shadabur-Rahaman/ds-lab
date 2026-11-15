@@ -1,5 +1,6 @@
+import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
 import {appUrl} from './lib/urls';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {ArrowLeft, Download} from 'lucide-react';
 import csv from '../public/datasets/iris.csv?raw';
 
@@ -24,16 +25,17 @@ const summary = (column: number) => species.map(name => {
  return {name, values, mean: values.reduce((sum, value) => sum + value, 0) / values.length};
 });
 
-export default function IrisProject() {
+export default function IrisProject({onQuiz,onExport}: {onQuiz:()=>void;onExport:()=>void}) {
  const [column, setColumn] = useState(2);
  const [answer, setAnswer] = useState('');
  const [checked, setChecked] = useState(false);
  const [cutoff, setCutoff] = useState(2.5);
  const [lockedCutoff, setLockedCutoff] = useState<number | null>(null);
  const [finding, setFinding] = useState(() => {
-  try { return localStorage.getItem('ds-lab:iris:report') ?? ''; } catch { return ''; }
+  try { return readLearnerText('ds-lab:iris:report') ?? ''; } catch { return ''; }
  });
  const [saveStatus, setSaveStatus] = useState('');
+  useEffect(()=>watchLearnerText('ds-lab:iris:report', setFinding), []);
  const groups = summary(column);
  const scale = Math.ceil(Math.max(...groups.flatMap(group => group.values)));
  const passed = checked && answer === 'setosa';
@@ -48,6 +50,7 @@ export default function IrisProject() {
   link.href = url;
   link.download = 'iris-eda-report.md';
   link.click();
+  onExport();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
  }
 
@@ -65,7 +68,7 @@ export default function IrisProject() {
     </section>
    </div>
    <div>
-    <section className="quiz"><h2>3. Check your interpretation</h2><p>Which species has a petal length range that does not overlap either of the other two?</p><div role="radiogroup" aria-label="Species with distinct petal length range">{species.map(name => <label className="quiz-option" key={name}><input type="radio" name="iris-check" checked={answer === name} onChange={() => {setAnswer(name); setChecked(false);}}/>{name}</label>)}</div><button className="button small" disabled={!answer} onClick={() => setChecked(true)}>Check interpretation</button>{checked && <p className="callout" role="status">{passed ? 'Correct. Setosa spans 1.0–1.9 cm. The other two species start at 3.0 cm and 4.5 cm.' : 'Switch to petal length and look for a gap between one species and both other ranges.'}</p>}</section>
+    <section className="quiz"><h2>3. Check your interpretation</h2><p>Which species has a petal length range that does not overlap either of the other two?</p><div role="radiogroup" aria-label="Species with distinct petal length range">{species.map(name => <label className="quiz-option" key={name}><input type="radio" name="iris-check" checked={answer === name} onChange={() => {setAnswer(name); setChecked(false);}}/>{name}</label>)}</div><button className="button small" disabled={!answer} onClick={() => {setChecked(true);if(answer==='setosa')onQuiz();}}>Check interpretation</button>{checked && <p className="callout" role="status">{passed ? 'Correct. Setosa spans 1.0–1.9 cm. The other two species start at 3.0 cm and 4.5 cm.' : 'Switch to petal length and look for a gap between one species and both other ranges.'}</p>}</section>
     <section className="experiment"><h2>Try a classification rule</h2>
      <p>Predict setosa when a petal is at or below your cutoff. Adjust it using the 120 training rows, then lock it to reveal the errors on 30 separate rows.</p>
      <label className="slider-label" htmlFor="iris-cutoff">Petal length cutoff <strong>{cutoff.toFixed(1)} cm</strong></label>
@@ -80,7 +83,7 @@ export default function IrisProject() {
     <section className="experiment"><h2>4. Write your finding</h2><label className="project-label" htmlFor="iris-finding">What did you find, and what can this sample tell you?</label><textarea id="iris-finding" rows={5} value={finding} onChange={e => {
      const value = e.target.value;
      setFinding(value);
-     try { localStorage.setItem('ds-lab:iris:report', value); setSaveStatus('Draft saved on this browser.'); } catch { setSaveStatus('Draft could not be saved. Export your report to keep it.'); }
+     try { if(!writeLearnerText('ds-lab:iris:report',value)) throw new Error('Draft storage unavailable.'); setSaveStatus('Draft saved on this browser.'); } catch { setSaveStatus('Draft could not be saved. Export your report to keep it.'); }
     }} placeholder="Cite a mean or range. Explain one limitation of using a single measurement."/><p className="muted" role="status">{saveStatus}</p><button className="button primary" disabled={!finding.trim()} onClick={exportReport}><Download size={16}/> Export report</button></section>
    </div>
   </div>

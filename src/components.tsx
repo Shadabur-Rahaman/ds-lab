@@ -1,3 +1,4 @@
+import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
 import {appUrl} from './lib/urls';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowUpRight,BarChart3,BrainCircuit,Check,Code2,Database,FolderKanban,Grid2X2,Layers,Play,RotateCcw,Search,Sparkles,Square,Table2} from 'lucide-react';
@@ -7,7 +8,8 @@ export function CafeChart({compact=false}:{compact?:boolean}){const [metric,setM
 export function CleaningDemo(){const [clean,setClean]=useState(false);const raw=[['101',' Mysuru','120'],['102','BENGALURU','180'],['102','BENGALURU','180'],['103','Mysuru ','—'],['104','SHIMOGA','240'],['105','Shimoga','160']];const result=[['101','Mysuru','120'],['102','Bengaluru','180'],['103','Mysuru','170'],['104','Shimoga','240'],['105','Shimoga','160']];return <div className="experiment"><div className="section-heading"><div><span className="eyebrow">EXPERIMENT 03 / DATA QUALITY</span><h3>A little cleanup goes a long way.</h3></div><button className="button small" onClick={()=>setClean(!clean)}>{clean?<RotateCcw size={15}/>:<Sparkles size={15}/>} {clean?'Restore raw data':'Preview cleaning'}</button></div><div className="table-wrap" role="region" aria-label="Café order table" tabIndex={0}><table><caption className="sr-only">Synthetic café orders, {clean?'cleaned':'raw'}</caption><thead><tr><th>order</th><th>city</th><th>amount (₹)</th></tr></thead><tbody>{(clean?result:raw).map((r,i)=><tr key={i} className={!clean&&(i===2||i===3)?'flagged':''}>{r.map((v,j)=><td key={j}>{v==='—'?<span className="chip orange">missing</span>:v}</td>)}</tr>)}</tbody></table></div><div className="quality"><span><Check size={14}/> {clean?'5 unique rows':'6 rows · 1 duplicate'}</span><span>{clean?'0 missing amounts':'1 missing amount'}</span><span>{clean?'Consistent labels':'Inconsistent labels'}</span></div><p className="callout">{clean?'After deduplication: median(120, 160, 180, 240) = ₹170. Next, reproduce this transformation in Python.':'Inspect first: the repeated order 102 is an exact duplicate. Order 103 has a missing amount.'}</p><a className="text-link" href={appUrl("/datasets/cafe-orders.csv")} download>Download the practice CSV <ArrowUpRight size={14}/></a></div>;}
 type Lesson = typeof lessons[number];
 type CodingChallenge = {challenge: string; starter: string; tests: string; hint: string; retailCsv?: string; example?: string};
-export function CodeEditor({lesson,draftId,onPass}:{lesson:CodingChallenge;draftId:string;onPass:()=>void}){const key='learning-ecosystem:ds:draft:'+draftId;const [code,setCode]=useState(()=>{try{return localStorage.getItem(key)??lesson.starter}catch{return lesson.starter}});const [output,setOutput]=useState('');const [status,setStatus]=useState('Ready to explore');const [busy,setBusy]=useState(false);const [hint,setHint]=useState(false);const [storageError,setStorageError]=useState(false);const worker=useRef<Worker|null>(null);const timer=useRef<ReturnType<typeof setTimeout>|null>(null);const active=useRef(false);const gutter=useRef<HTMLPreElement>(null);
+export function CodeEditor({lesson,draftId,onPass}:{lesson:CodingChallenge;draftId:string;onPass:()=>void}){const key='learning-ecosystem:ds:draft:'+draftId;const [code,setCode]=useState(()=>{try{return readLearnerText(key)??lesson.starter}catch{return lesson.starter}});const [output,setOutput]=useState('');const [status,setStatus]=useState('Ready to explore');const [busy,setBusy]=useState(false);const [hint,setHint]=useState(false);const [storageError,setStorageError]=useState(false);const worker=useRef<Worker|null>(null);const timer=useRef<ReturnType<typeof setTimeout>|null>(null);const active=useRef(false);const gutter=useRef<HTMLPreElement>(null);
+  useEffect(()=>watchLearnerText(key, setCode), [key]);
  function clearTimer() {
   if (timer.current !== null) clearTimeout(timer.current);
   timer.current = null;
@@ -30,7 +32,7 @@ export function CodeEditor({lesson,draftId,onPass}:{lesson:CodingChallenge;draft
  function update(text: string) {
   setCode(text);
   try {
-   localStorage.setItem(key, text);
+   if(!writeLearnerText(key,text)) throw new Error('Draft storage unavailable.');
    setStorageError(false);
   } catch {
    setStorageError(true);

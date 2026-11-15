@@ -1,3 +1,4 @@
+import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
 import {useEffect, useRef, useState} from 'react';
 import {ArrowRight, Check, Play, RotateCcw} from 'lucide-react';
 import {sqlLessons, type SqlLesson} from './sqlLessons';
@@ -41,7 +42,7 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
 }) {
   const draftKey = 'ds-lab:sql-draft:' + lesson.id;
   const [query, setQuery] = useState<string>(() => {
-    try { return localStorage.getItem(draftKey) ?? lesson.starter; }
+    try { return readLearnerText(draftKey) ?? lesson.starter; }
     catch { return lesson.starter; }
   });
   const [storageError, setStorageError] = useState(false);
@@ -61,9 +62,10 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
   const index = sqlLessons.findIndex(item => item.id === lesson.id);
   const next = sqlLessons[index + 1];
 
+  useEffect(()=>watchLearnerText(draftKey, setQuery), [draftKey]);
   function updateQuery(value: string) {
     setQuery(value);
-    try { localStorage.setItem(draftKey, value); setStorageError(false); } catch { setStorageError(true); }
+    try { if(!writeLearnerText(draftKey,value)) throw new Error('Draft storage unavailable.'); setStorageError(false); } catch { setStorageError(true); }
   }
 
   function request(action: Action, sql = '', inspect = false, example = false) {

@@ -1,4 +1,5 @@
-import {useState, type ReactNode} from 'react';
+import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
+import {useEffect, useState, type ReactNode} from 'react';
 import {DataTable, RetailExplorer} from './AnalysisStudio';
 import {LessonObjective, PracticeQuestion, RangeControl} from './StudioControls';
 import {cleanRetail, groupRevenue, metricNames, metrics, pearson, quantile, useRetail, type CleanRow, type Metric} from './lib/retail';
@@ -167,8 +168,9 @@ export function VisualizationLab({passed, onPass}: {passed: boolean; onPass: () 
 const findingsKey = 'ds-lab:retail-findings';
 export function RetailProject({passed, onPass, onExport}: {passed: boolean; onPass: () => void; onExport: () => void}) {
   const {data, error} = useRetail();
-  const [findings, setFindings] = useState(() => {try {return localStorage.getItem(findingsKey) ?? '';} catch {return '';}});
+  const [findings, setFindings] = useState(() => {try {return readLearnerText(findingsKey) ?? '';} catch {return '';}});
   const [storageError, setStorageError] = useState(false);
+  useEffect(()=>watchLearnerText(findingsKey, setFindings), []);
   if (!data) return <div className="page-heading"><h1>Retail Sales Data Cleaning & Exploratory Analysis</h1>
     <p role={error ? 'alert' : 'status'}>{error || 'Loading retail data…'}</p></div>;
   const {clean, duplicates, excluded} = cleanRetail(data.rows);
@@ -207,7 +209,7 @@ export function RetailProject({passed, onPass, onExport}: {passed: boolean; onPa
       <h2>Write your findings</h2><label htmlFor="retail-findings">Findings and limitations</label>
       <textarea id="retail-findings" maxLength={6000} value={findings} onChange={event => {
         setFindings(event.target.value);
-        try {localStorage.setItem(findingsKey, event.target.value); setStorageError(false);} catch {setStorageError(true);}
+        try {if(!writeLearnerText(findingsKey,event.target.value)) throw new Error('Draft storage unavailable.'); setStorageError(false);} catch {setStorageError(true);}
       }}/>
       {storageError && <p role="status">Draft is only available in this session. Download it to keep a copy.</p>}
       <button className="button primary" disabled={!findings.trim()} onClick={download}>Export analysis report</button>

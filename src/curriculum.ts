@@ -40,6 +40,7 @@ export const projects = [
 ] as const;
 
 export const learningItems: LearningItem[] = [...track,
+  {id:'iris-eda',title:projects[0].title,description:'Compare flower measurements and explain what they show.',course:'Guided projects',color:'green',icon:'folder'},
   {id: retailProjectId, title: projects[1].title, description: 'Audit a retail ledger and export your findings.',
     course: 'Guided projects', color: 'green', icon: 'folder'},
   {id: irisClassificationId, title: projects[2].title, description: 'Train a classifier and report held-out results.',
