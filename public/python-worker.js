@@ -10,7 +10,7 @@ self.onmessage = async ({data}) => {
       runtime = await loadPyodide({indexURL: distribution});
     }
   } catch {
-    send('error', 'Python could not download. Check your network connection, then try again.');
+    send('startup-error', 'Python could not download. Check your connection to cdn.jsdelivr.net, then select Run code to retry.');
     return;
   }
 

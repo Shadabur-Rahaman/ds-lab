@@ -22,7 +22,7 @@ test.beforeEach(async ({page}) => {
 });
 test('navigation, catalog, lesson interactions, responsive layout and theme',async({page},info)=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('./');await expect(page.getByRole('heading',{name:/A little curiosity/})).toBeVisible();
+ await page.goto('./');await expect(page.getByRole('heading',{name:/Make sense of real data/})).toBeVisible();
  if (!process.env.DS_TEST_STATIC) await page.screenshot({path:`qa/${info.project.name}-home.png`,fullPage:true});
  await page.getByRole('button',{name:'Revenue',exact:true}).click();await expect(page.getByText('Sunday earns')).toBeVisible();
  await page.getByRole('button',{name:'Switch to dark mode'}).click();await expect(page.locator('html')).toHaveAttribute('data-theme','dark');await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','dark');await page.getByRole('button',{name:'Switch to light mode'}).click();
@@ -31,13 +31,20 @@ test('navigation, catalog, lesson interactions, responsive layout and theme',asy
  await page.getByRole('button',{name:'View chapters'}).click();await expect(page.getByText('Window functions',{exact:true})).toBeVisible();
  await page.getByRole('textbox',{name:'Filter course catalog'}).fill('zzzz');await expect(page.getByRole('heading',{name:'No matching courses yet'})).toBeVisible();await page.getByRole('button',{name:'Reset filters'}).click();
  await page.goto('./learn/statistics');await page.locator('#outlier').fill('200');await expect(page.getByTestId('mean')).toHaveText('₹62');
- await page.getByText('The mean increases; the median stays at ₹30.',{exact:true}).click();await page.getByRole('button',{name:'Check understanding'}).click();await expect(page.getByText('Knowledge check complete',{exact:true})).toBeVisible();
- await page.reload();await expect(page.getByText('Knowledge check complete',{exact:true})).toBeVisible();
+ await page.getByText('The mean increases; the median stays at ₹30.',{exact:true}).click();await page.getByRole('button',{name:'Check understanding'}).click();await expect(page.locator('#knowledge-check').getByText('Knowledge check complete',{exact:true})).toBeVisible();
+ await page.reload();await expect(page.locator('#knowledge-check').getByText('Knowledge check complete',{exact:true})).toBeVisible();
  if (!process.env.DS_TEST_STATIC) await page.screenshot({path:`qa/${info.project.name}-statistics.png`,fullPage:true});
  await page.goto('./learn/pandas');await expect(page.locator('tbody tr')).toHaveCount(6);await page.getByRole('button',{name:'Preview cleaning'}).click();await expect(page.locator('tbody tr')).toHaveCount(5);await expect(page.getByRole('cell',{name:'170',exact:true})).toBeVisible();
  await page.getByRole('textbox',{name:'Python code',exact:true}).fill('print("draft survives")');await page.reload();await expect(page.getByRole('textbox',{name:'Python code',exact:true})).toHaveValue('print("draft survives")');
  await page.goto('./dashboard');await expect(page.getByText('Knowledge checks passed')).toBeVisible();
+ await expect(page.getByRole('progressbar',{name:'Lessons completed'})).toHaveAttribute('value','0');
+ await expect(page.getByRole('heading',{name:'Statistics Fundamentals'})).toBeVisible();
  await page.goto('./roadmap');await expect(page.locator('.roadmap-course')).toHaveCount(12);
+ await page.getByRole('navigation',{name:'Roadmap stages'}).getByRole('link',{name:'Projects'}).click();
+ await expect(page).toHaveURL(/#stage-4$/);
+ await page.goto('./learn/statistics');
+ await page.getByRole('navigation',{name:'On this page'}).getByRole('link',{name:'Python practice'}).click();
+ await expect(page).toHaveURL(/#python-practice$/);
  for(const route of ['/','/courses','/roadmap','/dashboard','/learn/pandas']){await page.goto('.'+route);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),route).toBe(true)}
  await page.getByRole('button',{name:'Open learner account'}).click();await expect(page.getByRole('dialog')).toBeVisible();await page.getByRole('button',{name:'Close account'}).click();
  if(info.project.name==='mobile'){await page.getByRole('button',{name:'Open navigation'}).click();await page.getByRole('link',{name:'My learning',exact:true}).click();await expect(page).toHaveURL(/dashboard/)}
@@ -73,13 +80,87 @@ test('Iris project analysis, saved draft and report download',async({page})=>{
  expect(readFileSync((await report.path())!,'utf8')).toContain('Setosa has shorter petals in this sample.');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
 });
-test('real Python challenges, pandas package, failure and worker cancellation',async({page},info)=>{
+test('Python editor times out execution and can start a fresh worker', async ({page}) => {
+ await page.clock.install();
+ await page.route('**/python-worker.js', route => route.fulfill({
+  contentType: 'text/javascript',
+  body: "self.onmessage = () => self.postMessage({kind:'status', text:'Executing', phase:'execution'});"
+ }));
+ await page.goto('./learn/introduction');
+ const run = page.getByRole('button', {name:'Run code', exact:true});
+ await run.click();
+ await expect(page.getByText('Executing', {exact:true})).toBeVisible();
+ await page.clock.fastForward(12_001);
+ await expect(page.getByText('Stopped after 12 seconds. Check for an infinite loop.', {exact:true})).toBeVisible();
+ await run.click();
+ await expect(page.getByText('Executing', {exact:true})).toBeVisible();
+ await page.getByRole('button', {name:'Stop', exact:true}).click();
+ await expect(page.getByText('Stopped. Ready to restart.', {exact:true})).toBeVisible();
+});
+test.describe('real Pyodide', () => {
  test.skip(process.env.DS_TEST_STATIC === '1', 'Live Pyodide requires access to its CDN.');
- test.skip(info.project.name==='mobile','Runtime is independently checked on desktop; mobile layout and interaction covered separately.');
- await page.goto('./learn/introduction');await page.getByRole('button',{name:'Check answer',exact:true}).click();await expect(page.getByText('Not quite yet — check the hint',{exact:true})).toBeVisible({timeout:100000});
- await page.getByRole('textbox',{name:'Python code',exact:true}).fill('orders = [42,58,51,67,80,95,72]\naverage_orders = sum(orders) / len(orders)\nprint(average_orders)');await page.getByRole('button',{name:'Check answer',exact:true}).click();await expect(page.getByText('Challenge passed — nice work!',{exact:true})).toBeVisible();
- await page.getByRole('textbox',{name:'Python code',exact:true}).fill('while True: pass');await page.getByRole('button',{name:'Run code',exact:true}).click();await page.getByRole('button',{name:'Stop',exact:true}).click();await expect(page.getByText('Stopped. Ready to restart.',{exact:true})).toBeVisible();
- await page.goto('./learn/statistics');await page.getByRole('textbox',{name:'Python code',exact:true}).fill('from statistics import median\norders=[20,25,30,35,200]\ntypical_order=median(orders)\nprint(typical_order)');await page.getByRole('button',{name:'Check answer',exact:true}).click();await expect(page.getByText('Challenge passed — nice work!',{exact:true})).toBeVisible({timeout:100000});
- await page.goto('./learn/pandas');const editor=page.getByRole('textbox',{name:'Python code',exact:true});const starter=await editor.inputValue();await editor.fill(starter+'\nclean = df.drop_duplicates().copy()\nclean["amount"] = clean["amount"].fillna(clean["amount"].median())\nclean["city"] = clean["city"].str.strip().str.title()\nprint(clean.to_string(index=False))');await page.getByRole('button',{name:'Check answer',exact:true}).click();await expect(page.getByText('Challenge passed — nice work!',{exact:true})).toBeVisible({timeout:100000});
- await page.screenshot({path:'qa/desktop-pandas-executed.png',fullPage:true});
+ test.skip(({ isMobile }) => isMobile, 'Real runtime checks run on desktop.');
+
+ test('executes Python, reports an exception and restarts after stopping', async ({ page }) => {
+  await page.goto('./learn/introduction');
+  const editor = page.getByRole('textbox', { name: 'Python code', exact: true });
+  const run = page.getByRole('button', { name: 'Run code', exact: true });
+  const consoleOutput = page.getByLabel('Python output');
+  const status = page.locator('.console').getByRole('status');
+  async function execute(code: string, expected: string | RegExp) {
+   await editor.fill(code);
+   await run.click();
+   await expect(run).toBeEnabled({ timeout: 95_000 });
+   await expect(consoleOutput).toHaveText(expected);
+  }
+
+  await execute('print(6 * 7)', '42');
+  await execute('raise ValueError("DS LAB test error")', /ValueError: DS LAB test error/);
+  await execute('print(8 * 8)', '64');
+  await editor.fill('while True: pass');
+  await run.click();
+  await expect(status).toHaveText('Running Python.');
+  await page.getByRole('button', { name: 'Stop', exact: true }).click();
+  await expect(status).toHaveText('Stopped. Ready to restart.');
+  await execute('print(9 * 9)', '81');
+ });
+
+ test('grades the foundations and statistics challenges', async ({ page }) => {
+  test.setTimeout(210_000);
+  const editor = page.getByRole('textbox', { name: 'Python code', exact: true });
+  const check = page.getByRole('button', { name: 'Check answer', exact: true });
+  const status = page.locator('.console').getByRole('status');
+  async function checkAnswer(expected: string) {
+   await check.click();
+   await expect(check).toBeEnabled({ timeout: 95_000 });
+   await expect(status).toHaveText(expected);
+  }
+
+  await page.goto('./learn/introduction');
+  await checkAnswer('Not quite yet \u2014 check the hint');
+  await editor.fill('orders = [42, 58, 51, 67, 80, 95, 72]\naverage_orders = sum(orders) / len(orders)\nprint(average_orders)');
+  await checkAnswer('Challenge passed \u2014 nice work!');
+  await page.goto('./learn/statistics');
+  await editor.fill('from statistics import median\norders = [20, 25, 30, 35, 200]\ntypical_order = median(orders)\nprint(typical_order)');
+  await checkAnswer('Challenge passed \u2014 nice work!');
+  await expect(page.getByLabel('Python output')).toHaveText('30');
+ });
+
+ test('executes pandas and grades the cleaning challenge', async ({ page }) => {
+  await page.goto('./learn/pandas');
+  const editor = page.getByRole('textbox', { name: 'Python code', exact: true });
+  const starter = await editor.inputValue();
+  const run = page.getByRole('button', { name: 'Run code', exact: true });
+  const output = page.getByLabel('Python output');
+  await editor.fill('import pandas as pd\nprint(pd.DataFrame({"orders": [12, 18, 12]})["orders"].sum())');
+  await run.click();
+  await expect(run).toBeEnabled({ timeout: 95_000 });
+  await expect(output).toHaveText('42');
+  await editor.fill(starter + '\nclean = df.drop_duplicates().copy()\nclean["amount"] = clean["amount"].fillna(clean["amount"].median())\nclean["city"] = clean["city"].str.strip().str.title()\nprint(clean.to_string(index=False))');
+  const check = page.getByRole('button', { name: 'Check answer', exact: true });
+  await check.click();
+  await expect(check).toBeEnabled({ timeout: 95_000 });
+  await expect(page.locator('.console').getByRole('status')).toHaveText('Challenge passed \u2014 nice work!');
+  await expect(output).toContainText(/103\s+Mysuru\s+170\.0/);
+ });
 });

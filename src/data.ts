@@ -6,7 +6,7 @@ export const lessons = [
 ] as const;
 export const courses = [
  {title:'Data Science Foundations',category:'Foundations',icon:'spark',color:'purple',chapters:['What is data science?','Asking measurable questions','Data types and collection','Ethics, privacy and bias'],lesson:'introduction',level:'Beginner'},
- {title:'Python for Data Science',category:'Foundations',icon:'code',color:'blue',chapters:['Variables and control flow','Collections and functions','Files and exceptions','Reusable analysis code'],external:'https://shadabur-rahaman.github.io/python-lab/',level:'Beginner'},
+ {title:'Python for Data Science',category:'Foundations',icon:'code',color:'blue',chapters:['Variables and control flow','Collections and functions','Files and exceptions','Reusable analysis code'],external:'https://shadabur-rahaman.github.io/python-lab/#/home',level:'Beginner'},
  {title:'Mathematics & Statistics',category:'Foundations',icon:'chart',color:'orange',chapters:['Descriptive statistics','Probability and distributions','Sampling and inference','Linear algebra and gradients'],lesson:'statistics',level:'Beginner'},
  {title:'SQL',category:'Data analysis',icon:'database',color:'blue',chapters:['SELECT, filters and sorting','Aggregations and GROUP BY','Joins and subqueries','Window functions'],level:'Beginner'},
  {title:'NumPy',category:'Data analysis',icon:'grid',color:'purple',chapters:['Arrays, shapes and dtypes','Indexing and broadcasting','Vectorized computation','Linear algebra in practice'],level:'Intermediate'},
@@ -18,4 +18,4 @@ export const courses = [
  {title:'Deployment & MLOps',category:'AI & deployment',icon:'layers',color:'blue',chapters:['Serving models with APIs','Containers and automated checks','Model and dataset versioning','Monitoring, drift and retraining'],level:'Advanced'},
  {title:'Real-world Capstones',category:'Projects',icon:'folder',color:'green',chapters:['Iris exploratory data analysis','Retail demand forecasting','Customer retention analysis','End-to-end model deployment'],level:'Advanced'}
 ];
-export const ecosystem = [{name:'Python Lab',url:'https://shadabur-rahaman.github.io/python-lab/',status:'Connected'},{name:'HTML Lab',status:'Integration planned'},{name:'JavaScript Lab',status:'Integration planned'}];
+export const ecosystem = [{name:'Python Lab',url:'https://shadabur-rahaman.github.io/python-lab/#/home',status:'Connected'},{name:'HTML Lab',status:'Integration planned'},{name:'JavaScript Lab',status:'Integration planned'}];
