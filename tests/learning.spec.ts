@@ -119,7 +119,7 @@ test.describe('real Pyodide', () => {
   await execute('print(8 * 8)', '64');
   await editor.fill('while True: pass');
   await run.click();
-  await expect(status).toHaveText('Running Python.');
+  await expect(status).toHaveText('Running Python…');
   await page.getByRole('button', { name: 'Stop', exact: true }).click();
   await expect(status).toHaveText('Stopped. Ready to restart.');
   await execute('print(9 * 9)', '81');
