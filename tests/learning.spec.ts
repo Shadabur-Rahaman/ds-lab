@@ -53,6 +53,15 @@ test('Iris project analysis, saved draft and report download',async({page})=>{
  await page.getByRole('radio',{name:'setosa',exact:true}).check();
  await page.getByRole('button',{name:'Check interpretation'}).click();
  await expect(page.getByText(/Correct\. Setosa/)).toBeVisible();
+ const cutoff=page.getByLabel('Petal length cutoff');
+ await expect(page.getByText('0 / 40',{exact:true})).toBeVisible();
+ await cutoff.fill('1');
+ await expect(page.getByText('39 / 40',{exact:true})).toBeVisible();
+ await cutoff.fill('7');
+ await expect(page.getByText('80 / 80',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Lock cutoff and test'}).click();
+ await expect(cutoff).toBeDisabled();
+ await expect(page.getByText(/20 false positives out of 20 and 0 false negatives out of 10/)).toBeVisible();
  const finding=page.getByRole('textbox',{name:/What did you find/});
  await finding.fill('Setosa has shorter petals in this sample.');
  await page.reload();

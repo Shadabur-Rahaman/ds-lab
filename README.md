@@ -15,6 +15,8 @@ DS LAB is the Data Science track for a shared learning ecosystem. This local mil
 
 In the DS LAB GitHub repository, select **Settings → Pages → Source → GitHub Actions**. The included workflow builds and publishes on pushes to `main` and can also run manually. It uses the Pages base path for internal navigation, datasets and the Python worker, and emits directory index files so direct lesson links and refreshes work.
 
+On this machine, use `D:\10_PROJECTS\ds-lab-publish` as the Git checkout for future releases. Review and reconcile any edits made in `D:\10_PROJECTS\DS LAB` before committing. Run `npm ci`, build with `DS_LAB_BASE=/ds-lab/`, and run the desktop and mobile browser checks before pushing to `main`. Verify the **Publish DS LAB** run and open the live site before closing out a release. The static browser checks cover navigation and project exercises. Run the live Python checks separately with network access to the Pyodide CDN.
+
 The guided Iris EDA project at `/projects/iris` uses the 150 observations in UCI's `bezdekIris.data`. The bundled CSV adds headers and shortens species labels. Fisher (1936), [Iris](https://doi.org/10.24432/C56C76), UCI Machine Learning Repository, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Learners can compare distributions, check an interpretation, and export a Markdown report. Report drafts are saved on the current browser.
 
 - `src/data.ts` holds course, chapter and lesson metadata. `src/content` holds MDX-compatible prose. `LessonContent` implements a restricted Markdown subset for the samples. JSX inside authored lesson files requires a full MDX compiler.

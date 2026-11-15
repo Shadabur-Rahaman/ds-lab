@@ -23,6 +23,13 @@ jobs:
       - run: npm run build
         env:
           DS_LAB_BASE: ${{ steps.pages.outputs.base_path }}/
+      - name: Install Chromium for browser checks
+        run: npx playwright install --with-deps chromium
+      - name: Verify desktop and mobile Pages build
+        run: npm run test:e2e
+        env:
+          DS_TEST_STATIC: '1'
+          DS_LAB_BASE: ${{ steps.pages.outputs.base_path }}/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

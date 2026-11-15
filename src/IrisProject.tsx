@@ -9,6 +9,16 @@ const measurements = csv.trim().split(/\r?\n/).slice(1).map(line => {
  const cells = line.split(',');
  return {values: cells.slice(0, 4).map(Number), species: cells[4]};
 });
+// Take one in five rows within each species. The split stays fixed on reload.
+const split = species.map(name => measurements.filter(row => row.species === name));
+const training = split.flatMap(rows => rows.filter((_, index) => index % 5 !== 0));
+const holdout = split.flatMap(rows => rows.filter((_, index) => index % 5 === 0));
+function countErrors(rows: typeof measurements, cutoff: number) {
+ return {
+  falsePositives: rows.filter(row => row.species !== 'setosa' && row.values[2] <= cutoff).length,
+  falseNegatives: rows.filter(row => row.species === 'setosa' && row.values[2] > cutoff).length,
+ };
+}
 const summary = (column: number) => species.map(name => {
  const values = measurements.filter(row => row.species === name).map(row => row.values[column]);
  return {name, values, mean: values.reduce((sum, value) => sum + value, 0) / values.length};
@@ -18,6 +28,8 @@ export default function IrisProject() {
  const [column, setColumn] = useState(2);
  const [answer, setAnswer] = useState('');
  const [checked, setChecked] = useState(false);
+ const [cutoff, setCutoff] = useState(2.5);
+ const [lockedCutoff, setLockedCutoff] = useState<number | null>(null);
  const [finding, setFinding] = useState(() => {
   try { return localStorage.getItem('ds-lab:iris:report') ?? ''; } catch { return ''; }
  });
@@ -25,6 +37,8 @@ export default function IrisProject() {
  const groups = summary(column);
  const scale = Math.ceil(Math.max(...groups.flatMap(group => group.values)));
  const passed = checked && answer === 'setosa';
+ const {falsePositives, falseNegatives} = countErrors(training, cutoff);
+ const testErrors = lockedCutoff === null ? null : countErrors(holdout, lockedCutoff);
 
  function exportReport() {
   const reportGroups = summary(2);
@@ -52,6 +66,17 @@ export default function IrisProject() {
    </div>
    <div>
     <section className="quiz"><h2>3. Check your interpretation</h2><p>Which species has a petal length range that does not overlap either of the other two?</p><div role="radiogroup" aria-label="Species with distinct petal length range">{species.map(name => <label className="quiz-option" key={name}><input type="radio" name="iris-check" checked={answer === name} onChange={() => {setAnswer(name); setChecked(false);}}/>{name}</label>)}</div><button className="button small" disabled={!answer} onClick={() => setChecked(true)}>Check interpretation</button>{checked && <p className="callout" role="status">{passed ? 'Correct. Setosa spans 1.0–1.9 cm. The other two species start at 3.0 cm and 4.5 cm.' : 'Switch to petal length and look for a gap between one species and both other ranges.'}</p>}</section>
+    <section className="experiment"><h2>Try a classification rule</h2>
+     <p>Predict setosa when a petal is at or below your cutoff. Adjust it using the 120 training rows, then lock it to reveal the errors on 30 separate rows.</p>
+     <label className="slider-label" htmlFor="iris-cutoff">Petal length cutoff <strong>{cutoff.toFixed(1)} cm</strong></label>
+     <input id="iris-cutoff" type="range" min="1" max="7" step="0.1" value={cutoff} disabled={lockedCutoff !== null} onChange={event => setCutoff(event.currentTarget.valueAsNumber)}/>
+     <div className="stat-pair" aria-live="polite">
+      <div><small>Other flowers called setosa</small><strong>{falsePositives} / 80</strong><span>Training false positives</span></div>
+      <div><small>Setosa flowers missed</small><strong>{falseNegatives} / 40</strong><span>Training false negatives</span></div>
+     </div>
+     <p><button className="button small" disabled={lockedCutoff !== null} onClick={() => setLockedCutoff(cutoff)}>Lock cutoff and test</button></p>
+     {testErrors && <p className="callout" role="status">At {lockedCutoff?.toFixed(1)} cm, the test set has {testErrors.falsePositives} false positives out of 20 and {testErrors.falseNegatives} false negatives out of 10. This is a teaching split. The chart above includes all 150 rows, so a cutoff informed by that chart is already influenced by the test data.</p>}
+    </section>
     <section className="experiment"><h2>4. Write your finding</h2><label className="project-label" htmlFor="iris-finding">What did you find, and what can this sample tell you?</label><textarea id="iris-finding" rows={5} value={finding} onChange={e => {
      const value = e.target.value;
      setFinding(value);
