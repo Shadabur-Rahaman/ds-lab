@@ -16,6 +16,7 @@ self.onmessage = async ({data}) => {
 
   try {
     send('status', 'Loading packages…');
+    if (typeof data.retailCsv === 'string') runtime.FS.writeFile('retail-sales.csv', data.retailCsv);
     await runtime.loadPackagesFromImports(data.code);
   } catch (error) {
     send('error', String(error));

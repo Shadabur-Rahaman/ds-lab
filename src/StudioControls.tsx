@@ -45,8 +45,8 @@ export function BarChart({counts, labels, description, caption, scale = Math.max
   </Plot>;
 }
 
-export function PracticeQuestion({prompt, options, answer, explanation}: {
-  prompt: string; options: readonly string[]; answer: number; explanation: string;
+export function PracticeQuestion({prompt, options, answer, explanation, onPass}: {
+  prompt: string; options: readonly string[]; answer: number; explanation: string; onPass?: () => void;
 }) {
   const name = useId();
   const [choice, setChoice] = useState<number>();
@@ -59,7 +59,10 @@ export function PracticeQuestion({prompt, options, answer, explanation}: {
         onChange={() => {setChoice(index); setChecked(false);}}/>
       <span>{option}</span>
     </label>)}
-    <button className="button" disabled={choice === undefined} onClick={() => setChecked(true)}>Check understanding</button>
+    <button className="button" disabled={choice === undefined} onClick={() => {
+      setChecked(true);
+      if (choice === answer) onPass?.();
+    }}>Check understanding</button>
     {checked && <p className="callout" role="status">{choice === answer ? 'Correct. ' : 'Try again. '}{explanation}</p>}
   </fieldset>;
 }

@@ -1,0 +1,27 @@
+.analysis-links { display: flex; gap: 9px; flex-wrap: wrap; margin-block: 16px; }
+.analysis-links .button { justify-content: space-between; }
+.analysis-lessons { margin-block: 18px; }
+.analysis-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 18px; align-items: start; }
+.analysis-column { min-width: 0; display: grid; gap: 18px; }
+.analysis-panel { min-width: 0; padding: clamp(15px, 2.5vw, 25px); margin-bottom: 14px; }
+.analysis-panel h2 { margin: 0 0 10px; }
+.analysis-panel p { line-height: 1.55; }
+.analysis-panel select { max-width: 100%; padding: 7px; margin-left: 6px; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; }
+.analysis-panel .sql-table-scroll { margin-top: 10px; }
+.analysis-panel td, .analysis-panel th { overflow-wrap: anywhere; }
+.analysis-panel summary { cursor: pointer; }
+.analysis-panel textarea { display: block; width: 100%; min-height: 115px; resize: vertical; margin: 7px 0 14px; padding: 10px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.analysis-heatmap table { table-layout: fixed; width: 100%; border-collapse: collapse; text-align: center; font-size: 0.83rem; }
+.analysis-heatmap th, .analysis-heatmap td { padding: 8px 3px; border: 1px solid var(--line); }
+.analysis-chart { width: 100%; max-width: 650px; height: auto; color: var(--muted); }
+.analysis-chart text { fill: currentColor; font-size: 12px; }
+.analysis-chart-controls { margin-top: 12px; align-items: center; }
+.analysis-empty { padding: 10px; }
+.analysis-median { stroke: var(--surface); stroke-width: 2.5; }
+.analysis-outlier { fill: var(--text); }
+.analysis-steps { padding-left: 22px; max-width: 75ch; line-height: 1.6; }
+.analysis-steps li { margin-block: 7px; }
+.analysis-studio :focus-visible, .analysis-links :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.course-bottom { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 900px) { .analysis-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .analysis-studio *, .analysis-links * { transition: none; animation: none; } }

@@ -2,17 +2,26 @@ import {ArrowDown, ArrowRight, ArrowUpRight, Check, Circle, Clock, FlaskConical,
 import {CafeChart, Glyph} from './components';
 import {lessons, type LearningId} from './data';
 import {SqlFeature} from './SqlStudio';
+import {AnalysisLinks} from './AnalysisStudio';
+import {analysisLessons, chartLessonId, retailProjectId} from './analysisLessons';
 import {sqlLessons} from './sqlLessons';
 import type {Progress} from './lib/progress';
 import {StatisticsFeature} from './StatisticsStudio';
 import {appUrl} from './lib/urls';
 
-export const learningItems = [...lessons, ...sqlLessons.map(lesson => ({
+export const learningItems: {id: LearningId; title: string; description: string; course: string; color: string; icon: string}[] = [...lessons, ...sqlLessons.map(lesson => ({
   id: lesson.id, title: lesson.title, description: lesson.challenge, course: 'SQL', color: 'blue', icon: 'database',
-}))];
+})), ...analysisLessons.map(lesson => ({
+  id: lesson.id, title: lesson.title, description: lesson.challenge, course: lesson.course,
+  color: lesson.course === 'NumPy' ? 'purple' : 'green', icon: lesson.course === 'NumPy' ? 'grid' : 'table',
+})), {id: chartLessonId, title: 'Data Visualization Lab', description: 'Choose a chart and interpret the results.',
+  course: 'Data Visualization', color: 'pink', icon: 'chart'},
+  {id: retailProjectId, title: 'Retail Sales Data Cleaning & Exploratory Analysis', description: 'Audit a retail ledger and export your findings.',
+    course: 'Guided projects', color: 'green', icon: 'folder'}];
 
 export function lessonState(progress: Progress, id: LearningId) {
   const entry = progress[id];
+  if (id === chartLessonId && entry?.quiz) return 'Completed';
   if (entry?.code && (entry.quiz || id.startsWith('sql-'))) return 'Completed';
   if (entry?.quiz || entry?.code || entry?.started) return 'In progress';
   return 'Ready to start';
@@ -44,6 +53,7 @@ export function Home({progress, next, openLesson, openPage}: {
     </section>
     <StatisticsFeature onOpen={() => openLesson("statistics")}/>
     <SqlFeature onOpen={() => openLesson(sqlLessons.find(item => !progress[item.id]?.code)?.id ?? sqlLessons[0].id)}/>
+    <AnalysisLinks open={openLesson}/>
     <section className="practice-section" aria-labelledby="practice-title">
       <header className="practice-header">
         <div><h2 id="practice-title">Start with a question</h2><p>Three lessons you can open and try today.</p></div>
@@ -62,6 +72,11 @@ export function Home({progress, next, openLesson, openPage}: {
     <a className="studio-project" href={appUrl('/projects/iris')}>
       <span className="value-icon green"><Glyph name="folder"/></span>
       <span><strong>Investigate the Iris dataset</strong><small>Compare flower measurements, test a rule, and export your findings.</small></span>
+      <ArrowRight size={19}/>
+    </a>
+    <a className="studio-project" href={appUrl('/projects/retail')}>
+      <span className="value-icon green"><Glyph name="table"/></span>
+      <span><strong>Clean a retail sales dataset</strong><small>Inspect order quality, visualize the results, and export your report.</small></span>
       <ArrowRight size={19}/>
     </a>
   </div>;

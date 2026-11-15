@@ -70,7 +70,7 @@ test('SQL lessons run real filters, aggregates, joins and NULL checks and persis
   await expect(editor).toHaveValue(solutions[4][1]);
   await expect(page.getByRole('navigation', {name: 'SQL lessons'}).getByLabel('Completed')).toHaveCount(5);
   await page.goto('./dashboard');
-  await expect(page.getByRole('heading', {name: '5 of 8 lessons complete'})).toBeVisible();
+  await expect(page.getByRole('heading', {name: /^5 of \d+ lessons complete$/})).toBeVisible();
   await page.goto('./courses');
   await page.getByRole('textbox', {name: 'Filter course catalog'}).fill('SQL');
   await page.getByRole('button', {name: 'Open studio'}).click();
