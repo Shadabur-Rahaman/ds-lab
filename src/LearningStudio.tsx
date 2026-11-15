@@ -1,6 +1,8 @@
 import {ArrowDown, ArrowRight, ArrowUpRight, Check, Circle, Clock, FlaskConical, Map} from 'lucide-react';
 import {CafeChart, Glyph} from './components';
 import {lessons, type LearningId} from './data';
+import {MlFeature} from './MlStudio';
+import {mlLessons, irisClassificationId} from './mlLessons';
 import {SqlFeature} from './SqlStudio';
 import {AnalysisLinks} from './AnalysisStudio';
 import {analysisLessons, chartLessonId, retailProjectId} from './analysisLessons';
@@ -17,6 +19,10 @@ export const learningItems: {id: LearningId; title: string; description: string;
 })), {id: chartLessonId, title: 'Data Visualization Lab', description: 'Choose a chart and interpret the results.',
   course: 'Data Visualization', color: 'pink', icon: 'chart'},
   {id: retailProjectId, title: 'Retail Sales Data Cleaning & Exploratory Analysis', description: 'Audit a retail ledger and export your findings.',
+    course: 'Guided projects', color: 'green', icon: 'folder'},
+  ...mlLessons.map(lesson => ({id: lesson.id, title: lesson.title, description: lesson.task,
+    course: 'Machine Learning', color: 'purple', icon: 'brain'})),
+  {id: irisClassificationId, title: 'Iris Classification', description: 'Train a classifier and report held-out results.',
     course: 'Guided projects', color: 'green', icon: 'folder'}];
 
 export function lessonState(progress: Progress, id: LearningId) {
@@ -54,6 +60,8 @@ export function Home({progress, next, openLesson, openPage}: {
     <StatisticsFeature onOpen={() => openLesson("statistics")}/>
     <SqlFeature onOpen={() => openLesson(sqlLessons.find(item => !progress[item.id]?.code)?.id ?? sqlLessons[0].id)}/>
     <AnalysisLinks open={openLesson}/>
+    <MlFeature onOpen={() => openLesson(mlLessons.find(item => lessonState(progress,item.id) === 'In progress')?.id
+      ?? mlLessons.find(item => lessonState(progress,item.id) === 'Ready to start')?.id ?? mlLessons[0].id)}/>
     <section className="practice-section" aria-labelledby="practice-title">
       <header className="practice-header">
         <div><h2 id="practice-title">Start with a question</h2><p>Three lessons you can open and try today.</p></div>
