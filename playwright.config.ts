@@ -3,7 +3,9 @@ import { defineConfig } from '@playwright/test';
 
 const isStatic = process.env.DS_TEST_STATIC === '1';
 const basePath = process.env.DS_LAB_BASE || '/';
-const baseURL = `http://127.0.0.1:5174${basePath}`;
+// Keep the worker's real-runtime server separate from local Playwright runs.
+const port = !isStatic && process.env.CI ? 5175 : 5174;
+const baseURL = `http://127.0.0.1:${port}${basePath}`;
 
 export default defineConfig({
   testDir: './tests',
@@ -34,7 +36,7 @@ export default defineConfig({
   ],
 
   webServer: isStatic ? undefined : {
-    command: 'npm run dev -- --host 127.0.0.1 --port 5174 --strictPort',
+    command: `npm run dev -- --host 127.0.0.1 --port ${port} --strictPort`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
