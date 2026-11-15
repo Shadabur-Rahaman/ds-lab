@@ -86,6 +86,7 @@ export function LessonJourney({id, progress, onOpen}: {id: LearningId; progress:
   const next = stage.items[index + 1] ?? stages[stageIndex + 1]?.items[0];
   return <nav className="lesson-journey" aria-label="Lesson progression">
     <div><strong>{stage.title}</strong><span>{index + 1} of {stage.items.length} · {lessonState(progress, id)}</span></div>
+    {!previous && <a className="button small" href="https://shadabur-rahaman.github.io/python-lab/#/home" target="_blank" rel="noreferrer">Foundation: Python Lab <ArrowUpRight size={13}/></a>}
     {previous && <button className="button small" onClick={() => onOpen(previous.id)}>Previous: {previous.title}</button>}
     {next && <button className="button primary small" onClick={() => onOpen(next.id)}>Next: {next.title} <ArrowRight size={14}/></button>}
     {!next && <a className="button primary small" href={appUrl('/projects/neural-classification')}>Try Neural Network Classification <ArrowRight size={14}/></a>}

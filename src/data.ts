@@ -27,4 +27,4 @@ export const courses = [
  {title:'Deployment & MLOps',category:'AI & deployment',icon:'layers',color:'blue',chapters:['Serving models with APIs','Containers and automated checks','Model and dataset versioning','Monitoring, drift and retraining'],level:'Advanced'},
  {title:'Real-world Capstones',category:'Projects',icon:'folder',color:'green',chapters:['Iris exploratory data analysis','Retail sales cleaning','Iris Classification','Neural Network Classification','Customer Purchase Analytics','Student Performance Prediction','Retail demand forecasting','Customer retention analysis','End-to-end model deployment'],planned:['Retail demand forecasting','Customer retention analysis','End-to-end model deployment'],level:'Advanced'}
 ];
-export const ecosystem = [{name:'Python Lab',url:'https://shadabur-rahaman.github.io/python-lab/#/home',status:'Connected'},{name:'HTML Lab',status:'Integration planned'},{name:'JavaScript Lab',status:'Integration planned'}];
+export const ecosystem = [{name:'Python Lab',url:'https://shadabur-rahaman.github.io/python-lab/#/home',status:'Programming Foundation'}];
