@@ -1,7 +1,8 @@
 import {copyFileSync, mkdirSync} from 'node:fs';
 
 // Pages serves directory indexes for links opened directly or refreshed.
-const routes = ['dashboard', 'courses', 'roadmap', 'learn/introduction', 'learn/statistics', 'learn/pandas', 'projects/iris'];
+const routes = ['dashboard', 'courses', 'roadmap', 'learn/introduction', 'learn/statistics', 'learn/pandas',
+ 'learn/sql-foundations', 'learn/sql-filtering', 'learn/sql-aggregation', 'learn/sql-joins', 'learn/sql-null', 'projects/iris'];
 for (const route of routes) {
  const directory = `dist/${route}`;
  mkdirSync(directory, {recursive: true});

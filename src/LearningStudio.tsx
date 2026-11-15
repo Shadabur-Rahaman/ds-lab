@@ -1,23 +1,27 @@
 import {ArrowDown, ArrowRight, ArrowUpRight, Check, Circle, Clock, FlaskConical, Map} from 'lucide-react';
 import {CafeChart, Glyph} from './components';
-import {lessons, type LessonId} from './data';
+import {lessons, type LearningId} from './data';
+import {SqlFeature} from './SqlStudio';
+import {sqlLessons} from './sqlLessons';
 import type {Progress} from './lib/progress';
 import {StatisticsFeature} from './StatisticsStudio';
 import {appUrl} from './lib/urls';
 
-export type Lesson = (typeof lessons)[number];
+export const learningItems = [...lessons, ...sqlLessons.map(lesson => ({
+  id: lesson.id, title: lesson.title, description: lesson.challenge, course: 'SQL', color: 'blue', icon: 'database',
+}))];
 
-export function lessonState(progress: Progress, id: LessonId) {
+export function lessonState(progress: Progress, id: LearningId) {
   const entry = progress[id];
-  if (entry?.quiz && entry.code) return 'Completed';
-  if (entry?.quiz || entry?.code) return 'In progress';
+  if (entry?.code && (entry.quiz || id.startsWith('sql-'))) return 'Completed';
+  if (entry?.quiz || entry?.code || entry?.started) return 'In progress';
   return 'Ready to start';
 }
 
 export function Home({progress, next, openLesson, openPage}: {
   progress: Progress;
-  next: Lesson;
-  openLesson: (id: LessonId) => void;
+  next: (typeof learningItems)[number];
+  openLesson: (id: LearningId) => void;
   openPage: (path: string) => void;
 }) {
   return <div className="learning-home">
@@ -39,6 +43,7 @@ export function Home({progress, next, openLesson, openPage}: {
       </div>
     </section>
     <StatisticsFeature onOpen={() => openLesson("statistics")}/>
+    <SqlFeature onOpen={() => openLesson(sqlLessons.find(item => !progress[item.id]?.code)?.id ?? sqlLessons[0].id)}/>
     <section className="practice-section" aria-labelledby="practice-title">
       <header className="practice-header">
         <div><h2 id="practice-title">Start with a question</h2><p>Three lessons you can open and try today.</p></div>

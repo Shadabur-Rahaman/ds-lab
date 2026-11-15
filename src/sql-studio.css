@@ -1,0 +1,34 @@
+.sql-feature { margin-block: 14px; }
+.sql-lessons { margin-block: 20px; }
+.sql-lessons button { display: inline-flex; align-items: center; gap: 7px; }
+.sql-workspace { display: grid; grid-template-columns: minmax(230px, 2fr) minmax(0, 3fr); gap: 18px; align-items: start; }
+.sql-workbench { min-width: 0; display: grid; gap: 18px; }
+.sql-panel { min-width: 0; padding: clamp(15px, 2.4vw, 26px); }
+.sql-panel h2 { margin: 0 0 12px; }
+.sql-guide h2 { margin-top: 8px; }
+.sql-guide h3 { margin: 23px 0 8px; }
+.sql-guide p, .sql-explorer p { line-height: 1.55; }
+.sql-guide pre, .sql-panel textarea { font: 0.9rem/1.65 'IBM Plex Mono', Consolas, monospace; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 13px; }
+.sql-guide pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.sql-panel textarea { min-height: 170px; width: 100%; box-sizing: border-box; resize: vertical; }
+.sql-keyboard, .sql-row-count { font-size: 0.82rem; }
+.sql-status { min-height: 22px; color: var(--text); }
+.sql-error { padding: 10px; border-left: 3px solid #d05753; background: var(--soft); color: var(--text); overflow-wrap: anywhere; }
+.sql-table-scroll { overflow: auto; max-height: 340px; border: 1px solid var(--line); border-radius: 9px; margin-bottom: 12px; }
+.sql-table-scroll table { border-collapse: collapse; width: 100%; text-align: left; font-size: 0.88rem; }
+.sql-table-scroll th, .sql-table-scroll td { padding: 9px 12px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.sql-table-scroll th { position: sticky; top: 0; background: var(--soft); }
+.sql-table-scroll tr:last-child td { border-bottom: 0; }
+.sql-null { color: var(--muted); }
+.sql-explorer { margin-top: 18px; }
+.sql-explorer .section-heading { flex-wrap: wrap; gap: 10px; }
+.sql-explorer [aria-pressed='true'] { color: var(--accent); background: var(--soft); }
+.sql-relationship { margin: 17px 0; padding: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; }
+.sql-relationship figcaption { font-weight: 700; }
+.sql-relationship div { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin-top: 8px; font-size: 0.8rem; }
+.sql-relationship span { padding: 4px; background: var(--soft); border-radius: 4px; }
+.sql-relationship p { margin-bottom: 0; font-size: 0.8rem; }
+.sql-studio :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 800px) {
+  .sql-workspace { grid-template-columns: minmax(0, 1fr); }
+}
