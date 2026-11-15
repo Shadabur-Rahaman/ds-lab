@@ -1,4 +1,4 @@
-import {useId, useState} from 'react';
+import {useId, useMemo, useState} from 'react';
 import {DataTable} from './AnalysisStudio';
 import {Metrics, RangeControl} from './StudioControls';
 import {binaryMetrics, classify, fitLine, fitPolynomial, curveData, regressionMetrics, splitRows, type Point, type Sample} from './lib/ml';
@@ -107,11 +107,11 @@ function Knn() {
   const result = classify(neighbors, [x,y], k, [weight,1]);
   const px = (value: number) => 34 + value * 32;
   const py = (value: number) => 177 - value * 16;
-  const cells = Array.from({length: 400}, (_, index) => {
+  const cells = useMemo(() => Array.from({length: 400}, (_, index) => {
     const left = (index % 20) / 2;
     const bottom = Math.floor(index / 20) / 2;
     return {left, bottom, label: classify(neighbors, [left+.25,bottom+.25], k, [weight,1]).label};
-  });
+  }), [k, weight]);
   return <>
     <h2>Find the nearest neighbors</h2>
     <div className="ml-fields"><RangeControl label="Neighbors (k)" min={1} max={9} step={2} value={k} onChange={setK}/>

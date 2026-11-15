@@ -1,0 +1,45 @@
+/* Shared controls and layout refinements for the learning routes. */
+.analysis-links { display: flex; flex-wrap: wrap; gap: 9px; margin-block: 16px; }
+.analysis-links .button { justify-content: space-between; }
+.learning-path { display: grid; gap: 8px; margin: 14px 0 24px; padding: 0; list-style: none; }
+.learning-path .practice-link { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+.path-progress { color: var(--muted); font-size: .83rem; white-space: nowrap; }
+.lesson-objective { margin: 12px 0; padding: 12px 15px; background: var(--soft); border-radius: 10px; border-inline-start: 3px solid var(--accent); }
+.lesson-objective p { margin: 4px 0 0; line-height: 1.5; }
+.lesson-journey { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 16px; margin-block: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.lesson-journey > div { margin-inline-end: auto; }
+.lesson-journey strong, .lesson-journey span { display: block; }
+.lesson-journey span { color: var(--muted); font-size: .85rem; margin-top: 4px; }
+.lesson-journey .button { text-align: start; white-space: normal; }
+.workspace-loading { padding: 22px; color: var(--muted); }
+.chapter-list li .chip { display: inline-block; margin-inline-start: 6px; }
+.course-bottom { display: flex; flex-wrap: wrap; gap: 6px; }
+.course-bottom .button { white-space: normal; }
+.progress-row > span:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
+.progress-row > svg { flex-shrink: 0; }
+.console pre:focus-visible, .table-wrap:focus-visible { outline-offset: -3px; }
+:root:not([data-theme='dark']) { --muted: #606a7c; }
+:root[data-theme='dark'] { --muted: #a9b4c8; }
+:where(button, a[href], input, select, textarea, summary, [tabindex='0']):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 700px) {
+  .sidebar:not(.open) { visibility: hidden; }
+  .learning-path .practice-link { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .learning-path .path-progress { grid-column: 2; grid-row: 2; }
+  .learning-path .practice-arrow { grid-column: 3; grid-row: 1; }
+  .lesson-journey > div { flex-basis: 100%; }
+  .editor-buttons .button, .lab-actions .button, .lesson-journey .button { min-height: 44px; }
+}
+@media (max-width: 385px) {
+  .top-actions { gap: 4px; }
+  .breadcrumbs { min-width: 0; overflow: hidden; }
+  .breadcrumbs span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lab-picker button { flex: 1 1 auto; max-width: 100%; overflow-wrap: anywhere; }
+  .progress-row { gap: 8px; padding: 12px; }
+  .code-panel .editor-buttons, .sql-panel .lab-actions { gap: 6px; }
+}
+.sql-feature { margin-block: 14px; }
+.sql-table-scroll { overflow: auto; max-height: 340px; border: 1px solid var(--line); border-radius: 9px; margin-bottom: 12px; }
+.sql-table-scroll table { border-collapse: collapse; width: 100%; text-align: left; font-size: 0.88rem; }
+.sql-table-scroll th, .sql-table-scroll td { padding: 9px 12px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.sql-table-scroll th { position: sticky; top: 0; background: var(--soft); }
+.sql-table-scroll tr:last-child td { border-bottom: 0; }

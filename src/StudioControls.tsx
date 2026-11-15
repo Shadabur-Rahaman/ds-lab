@@ -1,5 +1,11 @@
 import {useId, useState, type ReactNode} from 'react';
 
+export function LessonObjective({children}: {children: ReactNode}) {
+  return <aside className="lesson-objective" aria-label="Learning objective">
+    <strong>Learning objective</strong><p>{children}</p>
+  </aside>;
+}
+
 export function RangeControl({label, value, min, max, step = 1, onChange, display = String(value)}: {
   label: string; value: number; min: number; max: number; step?: number;
   onChange: (value: number) => void; display?: string;

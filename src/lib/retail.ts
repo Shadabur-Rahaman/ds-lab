@@ -58,10 +58,11 @@ export function pearson(left: number[], right: number[]) {
   return spread ? Math.max(-1, Math.min(1, dx.reduce((sum, value, index) => sum + value * dy[index], 0) / spread)) : null;
 }
 
-export function useRetail() {
+export function useRetail(enabled = true) {
   const [data, setData] = useState<{csv: string; rows: RetailRow[]}>();
   const [error, setError] = useState('');
   useEffect(() => {
+    if (!enabled) return;
     const controller = new AbortController();
     fetch(appUrl(retailPath), {signal: controller.signal}).then(response => {
       if (!response.ok) throw new Error('The retail dataset could not load.');
@@ -74,6 +75,6 @@ export function useRetail() {
       if (!controller.signal.aborted) setError(problem.message);
     });
     return () => controller.abort();
-  }, []);
+  }, [enabled]);
   return {data, error};
 }

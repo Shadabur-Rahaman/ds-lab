@@ -1,0 +1,25 @@
+# DS LAB V9 internal learning audit
+
+The audit covers the deployed V8 curriculum and informs the V9 changes. A mapped topic is classified as planned unless a lesson, lab, external destination, or guided project exists.
+
+| Area | V8 evidence | V9 priority |
+| --- | --- | --- |
+| Foundations | Intro café investigation, average-order Python challenge and association quiz. The catalog also listed broader data types and ethics topics without dedicated lessons. | Identify the existing activity and separate planned chapters. |
+| Statistics | Averages and outliers, probability, normal distribution, correlation, sampling. Every lab has an experiment, Python challenge and knowledge check. Only the main checks counted toward tracked completion. | Persist additional lab checks and describe their optional status. |
+| SQL | Foundations, filtering and sorting, aggregation, joins, NULL handling. Actual SQLite, worked examples, result-based grading and a synthetic database. Window functions was mapped only. | Give each lab a concept check; retain the query as its existing completion requirement. Protect query drafts during examples and reset. |
+| NumPy | Arrays, slicing, element-wise operations, broadcasting, axes and numerical summaries. Interactive array previews are separate from actual Python grading. | Add visible objectives and a consistent onward link without duplicating examples. |
+| Pandas | Frames, CSV inspection, selection, quality, grouping and merge. A separate original cleaning lesson remains available. Both use actual Python checks and different teaching datasets. | Place the original activity in the track after the modern sequence. Distinguish the retail workbench from Python output. |
+| Visualization | One lab with six chart types, column selectors, outlier control, a chart interpretation check and inspectable calculated values. | Count it as one tracked lab, preserve its exploration challenge, and guide learners to ML. |
+| Machine Learning | Features and targets, regression, kNN, splits and leakage, metrics, and model complexity. All have actual calculations, Python examples and quizzes. | Keep model and lesson behavior and make the completion path consistent. |
+| Projects | Iris EDA, retail cleaning, and Iris classification each have a report workflow. Iris EDA never recorded a completion event. | List all three consistently; show only the two with tracked checks in completion totals. |
+| Remaining curriculum | Data Cleaning and EDA coursework, Deep Learning and AI, and Deployment and MLOps were previews. Python for Data Science links to Python Lab. Additional capstone topics are mapped. | Keep explicit planned and external labels. |
+
+## Learner experience findings
+
+- The order of entries in the journal placed legacy Pandas ahead of SQL and an optional project ahead of ML. Resume chose the first incomplete item over a newer active lesson.
+- Course cards, roadmap, and dashboard used different status rules. The dashboard knowledge and coding totals referred only to the three original lessons.
+- The narrow-screen drawer was translated off screen while its links could still receive keyboard focus. Narrow table and chart behavior needed checks below the existing 390 px mobile project.
+- The homepage eagerly imported studio implementations, chart code, and project data through feature links. Moving entry cards into a lightweight module makes direct lesson and project routes the point of loading.
+- With identical local Pages base paths, the entry JavaScript dropped from about 384 kB to 323 kB before compression and from 120 kB to 101 kB gzip. This is an asset-size measurement, with runtime download and interaction time outside its scope.
+- Progress writes could replace newer activity from another tab. General account sync copy could imply that studio activity and drafts were synced. Only the original three lesson checks have an optional backend.
+- Runtime checks must stay real. First-use CDN downloads remain necessary for Python and SQLite. Browser tests cover route reloads, saved state, model and data results, and worker regressions.

@@ -1,6 +1,6 @@
 import {useState, type ReactNode} from 'react';
 import {DataTable, RetailExplorer} from './AnalysisStudio';
-import {PracticeQuestion, RangeControl} from './StudioControls';
+import {LessonObjective, PracticeQuestion, RangeControl} from './StudioControls';
 import {cleanRetail, groupRevenue, metricNames, metrics, pearson, quantile, useRetail, type CleanRow, type Metric} from './lib/retail';
 
 const chartTypes = ['Histogram', 'Bar chart', 'Line chart', 'Scatter plot', 'Box plot', 'Correlation heatmap'] as const;
@@ -154,6 +154,7 @@ export function VisualizationLab({passed, onPass}: {passed: boolean; onPass: () 
   const {data, error} = useRetail();
   return <div className="analysis-studio">
     <div className="lesson-heading v5-heading"><div><h1>Data Visualization Lab</h1><p>Choose a chart, change the data, and see how the interpretation changes.</p></div></div>
+    <LessonObjective>Choose a chart for a question, check its values, and explain what changes when you exclude a large order.</LessonObjective>
     {data ? <ChartLab rows={cleanRetail(data.rows).clean}/> : <p role={error ? 'alert' : 'status'}>{error || 'Loading retail data…'}</p>}
     <PracticeQuestion prompt="Which chart shows the distribution of individual order revenue?"
       options={['A histogram with equal-width revenue bins', 'A line connecting category names', 'A bar showing only total revenue']}

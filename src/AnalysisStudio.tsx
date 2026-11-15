@@ -1,8 +1,8 @@
 import {useState} from 'react';
-import {ArrowRight, BarChart3, Grid2X2, Table2} from 'lucide-react';
-import {analysisLessons, chartLessonId, type AnalysisLesson, type AnalysisLessonId} from './analysisLessons';
+import {ArrowRight} from 'lucide-react';
+import {analysisLessons, type AnalysisLesson, type AnalysisLessonId} from './analysisLessons';
 import {CodeEditor} from './components';
-import {PracticeQuestion, RangeControl} from './StudioControls';
+import {LessonObjective, PracticeQuestion, RangeControl} from './StudioControls';
 import {cleanRetail, groupRevenue, headers, retailPath, useRetail, type RetailRow} from './lib/retail';
 import {appUrl} from './lib/urls';
 import './analysis-studio.css';
@@ -25,14 +25,6 @@ const knowledge = {
     ['Which merge preserves every sales order?', 'A left merge from sales', 'An inner merge', 'A left merge keeps the sales row even without a lookup match.'],
   ],
 };
-
-export function AnalysisLinks({open}: {open: (id: AnalysisLessonId | typeof chartLessonId) => void}) {
-  return <div className="analysis-links">
-    {([['NumPy Learning Studio', 'numpy-arrays', Grid2X2], ['Pandas Learning Studio', 'pandas-frames', Table2],
-      ['Data Visualization Lab', chartLessonId, BarChart3]] as const).map(([label, id, Icon]) =>
-      <button key={id} className="button" onClick={() => open(id)}><Icon size={19}/> {label} <ArrowRight size={15}/></button>)}
-  </div>;
-}
 
 export function DataTable({title, columns, rows}: {title: string; columns: readonly (string | number)[]; rows: (string | number | null)[][]}) {
   return <div className="sql-table-scroll" role="region" aria-label={title + ' scrolling region'} tabIndex={0}>
@@ -107,7 +99,7 @@ export function AnalysisStudio({lesson, onOpen, onQuiz, onCode, progress}: {
   progress?: {quiz: boolean; code: boolean};
 }) {
   const numpy = lesson.course === 'NumPy';
-  const {data, error} = useRetail();
+  const {data, error} = useRetail(!numpy);
   const siblings = analysisLessons.filter(item => item.course === lesson.course);
   const [prompt, correct, distractor, explanation] = knowledge[lesson.course][lesson.index];
   const answer = lesson.index % 2;
@@ -121,7 +113,7 @@ export function AnalysisStudio({lesson, onOpen, onQuiz, onCode, progress}: {
     <div className="analysis-grid">
       <div className="analysis-column">
         <article className="experiment analysis-panel">
-          <h2>{lesson.title}</h2><p>{lesson.concept}</p><h3>What you’ll practice</h3><p>{lesson.challenge}</p>
+          <h2>{lesson.title}</h2><p>{lesson.concept}</p><LessonObjective>{lesson.challenge}</LessonObjective>
           <details className="lab-hint"><summary>Common mistake</summary><p>{lesson.mistake}</p></details>
           <details className="lab-hint"><summary>Hinglish memory hint</summary><p>{lesson.memory}</p></details>
         </article>

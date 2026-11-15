@@ -1,37 +1,12 @@
-import {ArrowDown, ArrowRight, ArrowUpRight, Check, Circle, Clock, FlaskConical, Map} from 'lucide-react';
+import {ArrowDown, ArrowRight, ArrowUpRight, Check, Circle, FlaskConical, Map} from 'lucide-react';
 import {CafeChart, Glyph} from './components';
-import {lessons, type LearningId} from './data';
-import {MlFeature} from './MlStudio';
+import {type LearningId} from './data';
+import {AnalysisLinks, MlFeature, SqlFeature, StatisticsFeature} from './StudioLinks';
+import {learningItems, lessonState, resumeItem, stages} from './curriculum';
 import {mlLessons, irisClassificationId} from './mlLessons';
-import {SqlFeature} from './SqlStudio';
-import {AnalysisLinks} from './AnalysisStudio';
-import {analysisLessons, chartLessonId, retailProjectId} from './analysisLessons';
 import {sqlLessons} from './sqlLessons';
 import type {Progress} from './lib/progress';
-import {StatisticsFeature} from './StatisticsStudio';
 import {appUrl} from './lib/urls';
-
-export const learningItems: {id: LearningId; title: string; description: string; course: string; color: string; icon: string}[] = [...lessons, ...sqlLessons.map(lesson => ({
-  id: lesson.id, title: lesson.title, description: lesson.challenge, course: 'SQL', color: 'blue', icon: 'database',
-})), ...analysisLessons.map(lesson => ({
-  id: lesson.id, title: lesson.title, description: lesson.challenge, course: lesson.course,
-  color: lesson.course === 'NumPy' ? 'purple' : 'green', icon: lesson.course === 'NumPy' ? 'grid' : 'table',
-})), {id: chartLessonId, title: 'Data Visualization Lab', description: 'Choose a chart and interpret the results.',
-  course: 'Data Visualization', color: 'pink', icon: 'chart'},
-  {id: retailProjectId, title: 'Retail Sales Data Cleaning & Exploratory Analysis', description: 'Audit a retail ledger and export your findings.',
-    course: 'Guided projects', color: 'green', icon: 'folder'},
-  ...mlLessons.map(lesson => ({id: lesson.id, title: lesson.title, description: lesson.task,
-    course: 'Machine Learning', color: 'purple', icon: 'brain'})),
-  {id: irisClassificationId, title: 'Iris Classification', description: 'Train a classifier and report held-out results.',
-    course: 'Guided projects', color: 'green', icon: 'folder'}];
-
-export function lessonState(progress: Progress, id: LearningId) {
-  const entry = progress[id];
-  if (id === chartLessonId && entry?.quiz) return 'Completed';
-  if (entry?.code && (entry.quiz || id.startsWith('sql-'))) return 'Completed';
-  if (entry?.quiz || entry?.code || entry?.started) return 'In progress';
-  return 'Ready to start';
-}
 
 export function Home({progress, next, openLesson, openPage}: {
   progress: Progress;
@@ -64,19 +39,12 @@ export function Home({progress, next, openLesson, openPage}: {
       ?? mlLessons.find(item => lessonState(progress,item.id) === 'Ready to start')?.id ?? mlLessons[0].id)}/>
     <section className="practice-section" aria-labelledby="practice-title">
       <header className="practice-header">
-        <div><h2 id="practice-title">Start with a question</h2><p>Three lessons you can open and try today.</p></div>
+        <div><h2 id="practice-title">Your learning path</h2><p>Follow the recommended order or open any stage.</p></div>
         <button className="text-link" onClick={() => openPage('/courses')}>Explore all courses <ArrowRight size={16}/></button>
       </header>
-      <div className="practice-list">
-        {lessons.map(lesson => <button key={lesson.id} className="practice-link" onClick={() => openLesson(lesson.id)}>
-          <span className={'value-icon ' + lesson.color}><Glyph name={lesson.icon}/></span>
-          <span className="practice-copy"><small>{lesson.course}</small><strong>{lesson.short}</strong><span>{lesson.description}</span></span>
-          <span className="practice-meta"><span><Clock size={14}/> {lesson.time} min</span><span>{lessonState(progress, lesson.id)}</span></span>
-          <ArrowUpRight className="practice-arrow" size={19}/>
-        </button>)}
-      </div>
+      <LearningPath progress={progress} openLesson={openLesson}/>
     </section>
-    <a className="studio-project" href={appUrl('/roadmap')}><span className="value-icon purple"><Map size={22}/></span><span><strong>See the learning roadmap</strong><small>Explore all four stages of the curriculum.</small></span><ArrowRight size={19}/></a>
+    <a className="studio-project" href={appUrl('/roadmap')}><span className="value-icon purple"><Map size={22}/></span><span><strong>See the learning roadmap</strong><small>See the seven stages and their recommended order.</small></span><ArrowRight size={19}/></a>
     <a className="studio-project" href={appUrl('/projects/iris')}>
       <span className="value-icon green"><Glyph name="folder"/></span>
       <span><strong>Investigate the Iris dataset</strong><small>Compare flower measurements, test a rule, and export your findings.</small></span>
@@ -88,6 +56,40 @@ export function Home({progress, next, openLesson, openPage}: {
       <ArrowRight size={19}/>
     </a>
   </div>;
+}
+
+export function LearningPath({progress, openLesson}: {
+  progress: Progress; openLesson: (id: LearningId) => void;
+}) {
+  return <ol className="learning-path" aria-label="Recommended learning path">
+    {stages.map(stage => {
+      const completed = stage.items.filter(item => lessonState(progress, item.id) === 'Completed').length;
+      const next = resumeItem(progress, stage.items);
+      return <li key={stage.title}>
+        <button className="practice-link" onClick={() => openLesson(next.id)}>
+          <span className={'value-icon ' + next.color}><Glyph name={next.icon}/></span>
+          <span className="practice-copy"><strong>{stage.title}</strong><span>{stage.outcome}</span></span>
+          <span className="path-progress">{completed} / {stage.items.length} complete</span>
+          <ArrowRight className="practice-arrow" size={16}/>
+        </button>
+      </li>;
+    })}
+  </ol>;
+}
+
+export function LessonJourney({id, progress, onOpen}: {id: LearningId; progress: Progress; onOpen: (id: LearningId) => void}) {
+  const stageIndex = stages.findIndex(stage => stage.items.some(item => item.id === id));
+  if (stageIndex < 0) return null;
+  const stage = stages[stageIndex];
+  const index = stage.items.findIndex(item => item.id === id);
+  const previous = stage.items[index - 1] ?? stages[stageIndex - 1]?.items.at(-1);
+  const next = stage.items[index + 1] ?? stages[stageIndex + 1]?.items[0];
+  return <nav className="lesson-journey" aria-label="Lesson progression">
+    <div><strong>{stage.title}</strong><span>{index + 1} of {stage.items.length} · {lessonState(progress, id)}</span></div>
+    {previous && <button className="button small" onClick={() => onOpen(previous.id)}>Previous: {previous.title}</button>}
+    {next && <button className="button primary small" onClick={() => onOpen(next.id)}>Next: {next.title} <ArrowRight size={14}/></button>}
+    {!next && <a className="button primary small" href={appUrl('/projects/iris-classification')}>Try Iris Classification <ArrowRight size={14}/></a>}
+  </nav>;
 }
 
 export function ProgressCheck({done, children}: {done: boolean; children: string}) {

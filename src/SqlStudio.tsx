@@ -1,12 +1,20 @@
 import {useEffect, useRef, useState} from 'react';
-import {ArrowRight, ArrowUpRight, Check, Database, Play, RotateCcw} from 'lucide-react';
+import {ArrowRight, Check, Play, RotateCcw} from 'lucide-react';
 import {sqlLessons, type SqlLesson} from './sqlLessons';
+import {LessonObjective, PracticeQuestion} from './StudioControls';
 import workerSource from './lib/sqlWorker.js?raw';
 import './sql-studio.css';
 
 type Grid = {columns: string[]; rows: (string | number | null | Uint8Array)[][]; truncated: boolean};
 type Reply = {id: number; result?: Grid; expected?: Grid; passed?: boolean; error?: string};
 type Action = 'initialize' | 'run' | 'check' | 'expected' | 'reset';
+const knowledge = [
+  {prompt:'How do you make the first three results reproducible?',options:['Use LIMIT alone','Use ORDER BY before LIMIT'],answer:1,explanation:'ORDER BY defines which rows come first. LIMIT then takes three of those rows.'},
+  {prompt:'Which clause keeps rows that satisfy a condition?',options:['WHERE','ORDER BY'],answer:0,explanation:'WHERE filters rows. ORDER BY sorts the surviving rows.'},
+  {prompt:'Which clause filters a count after GROUP BY?',options:['WHERE','HAVING'],answer:1,explanation:'HAVING can test the aggregated count. WHERE filters before groups are formed.'},
+  {prompt:'Which join can keep customers without orders?',options:['LEFT JOIN from Customers','INNER JOIN'],answer:0,explanation:'A left join keeps customers with no match and returns NULL for the order columns.'},
+  {prompt:'How do you test for an unknown email address?',options:['email = NULL','email IS NULL'],answer:1,explanation:'SQL comparisons with NULL do not return true. IS NULL checks directly for a missing value.'},
+];
 const tables = ['Customers', 'Orders', 'OrderItems', 'Products'] as const;
 
 function ResultGrid({result, title}: {result: Grid; title: string}) {
@@ -24,14 +32,6 @@ function ResultGrid({result, title}: {result: Grid; title: string}) {
   </>;
 }
 
-export function SqlFeature({onOpen}: {onOpen: () => void}) {
-  return <button className="statistics-feature sql-feature" onClick={onOpen}>
-    <span className="value-icon blue"><Database size={24}/></span>
-    <span><strong>SQL Learning Studio</strong><small>Query a retail database in five beginner lessons</small></span>
-    <ArrowUpRight size={20}/>
-  </button>;
-}
-
 export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
   lesson: SqlLesson;
   completed: (id: SqlLesson['id']) => boolean;
@@ -44,6 +44,8 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
     try { return localStorage.getItem(draftKey) ?? lesson.starter; }
     catch { return lesson.starter; }
   });
+  const [storageError, setStorageError] = useState(false);
+  const [resetUndo, setResetUndo] = useState<string>();
   const [busy, setBusy] = useState<Action | null>('initialize');
   const [result, setResult] = useState<Grid>();
   const [expected, setExpected] = useState<Grid>();
@@ -61,10 +63,10 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
 
   function updateQuery(value: string) {
     setQuery(value);
-    try { localStorage.setItem(draftKey, value); } catch { /* Keep the draft in memory. */ }
+    try { localStorage.setItem(draftKey, value); setStorageError(false); } catch { setStorageError(true); }
   }
 
-  function request(action: Action, sql = '', inspect = false) {
+  function request(action: Action, sql = '', inspect = false, example = false) {
     if (active.current) return;
     active.current = true;
     setBusy(action);
@@ -115,8 +117,8 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
           if (data.passed) onPass();
           else onStart();
         } else {
-          onStart();
-          setMessage(data.result?.columns.length ? 'Query finished.' : 'Statement executed successfully.');
+          if (!example) onStart();
+          setMessage(data.result?.columns.length ? (example ? 'Worked example finished. Your draft is unchanged.' : 'Query finished.') : 'Statement executed successfully.');
         }
       };
       timer.current = window.setTimeout(() => fail('SQLite timed out. The sample database will restart on the next run.'), action === 'initialize' ? 30_000 : 12_000);
@@ -135,6 +137,18 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
       window.clearTimeout(timer.current);
     };
   }, []);
+
+  function stopQuery() {
+    worker.current?.terminate();
+    worker.current = null;
+    ++requestId.current;
+    active.current = false;
+    window.clearTimeout(timer.current);
+    setBusy(null);
+    setPreview(undefined);
+    setError('');
+    setMessage('Stopped. The sample database will restart on the next run.');
+  }
 
   function viewTable(name: typeof table, showSchema: boolean) {
     setTable(name);
@@ -161,8 +175,8 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
           <p>Each arrow goes from one record to its many related records.</p>
         </figure>}
         <h3>Worked example</h3><pre><code>{lesson.example}</code></pre>
-        <button className="button" disabled={!!busy} onClick={() => { updateQuery(lesson.example); request('run', lesson.example); }}>Run example</button>
-        <h3>Practice challenge</h3><p>{lesson.challenge}</p>
+        <button className="button" disabled={!!busy} onClick={() => request('run', lesson.example, false, true)}>Run example</button>
+        <LessonObjective>{lesson.challenge}</LessonObjective>
         <details className="lab-hint"><summary>Hint</summary><p>{lesson.hint}</p></details>
         <details className="lab-hint"><summary>Common mistake</summary><p>{lesson.mistake}</p></details>
         <details className="lab-hint"><summary>Hinglish memory hint</summary><p>{lesson.memory}</p></details>
@@ -171,15 +185,18 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
         <section className="experiment sql-panel" aria-labelledby="editor-title">
           <h2 id="editor-title">Query editor</h2>
           <label className="sr-only" htmlFor="sql-query">SQL query</label>
-          <textarea id="sql-query" value={query} onChange={event => updateQuery(event.target.value)} spellCheck={false} autoCapitalize="off" maxLength={20000}
+          <textarea id="sql-query" value={query} onChange={event => {setResetUndo(undefined);updateQuery(event.target.value);}} spellCheck={false} autoCapitalize="off" maxLength={20000}
             onKeyDown={event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); if (query.trim()) request('run', query); } }}/>
           <div className="lab-actions">
             <button className="button primary" disabled={!!busy || !query.trim()} onClick={() => request('run', query)}><Play size={15}/> Run query</button>
             <button className="button" disabled={!!busy || !query.trim()} onClick={() => request('check', query)}>Check answer</button>
-            <button className="button" onClick={() => updateQuery(lesson.starter)}><RotateCcw size={15}/> Reset query</button>
+            <button className="button" disabled={!!busy} onClick={() => {if(query !== lesson.starter) setResetUndo(query); updateQuery(lesson.starter);}}><RotateCcw size={15}/> Reset query</button>
+            {resetUndo !== undefined && <button className="button" onClick={() => {updateQuery(resetUndo);setResetUndo(undefined);}}>Undo reset</button>}
+            {busy && <button className="button" onClick={stopQuery}>Stop query</button>}
           </div>
           <p className="muted sql-keyboard">Ctrl or Cmd + Enter to run. Only the final statement’s results are shown.</p>
           <div role="status" className="sql-status">{busy ? busy === 'initialize' ? 'Loading SQLite…' : 'Working…' : message}</div>
+          {storageError && <p className="callout">This browser could not save your query. Copy it before leaving.</p>}
           {error && <p role="alert" className="sql-error">{error}</p>}
         </section>
         <section className="experiment sql-panel" aria-labelledby="results-title">
@@ -201,5 +218,6 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
       </div>
       {preview && <ResultGrid title={table + (schema ? ' schema' : ' sample rows')} result={preview}/>}
     </section>
+    <PracticeQuestion key={lesson.id} {...knowledge[index]}/>
   </div>;
 }

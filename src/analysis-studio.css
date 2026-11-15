@@ -1,5 +1,3 @@
-.analysis-links { display: flex; gap: 9px; flex-wrap: wrap; margin-block: 16px; }
-.analysis-links .button { justify-content: space-between; }
 .analysis-lessons { margin-block: 18px; }
 .analysis-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 18px; align-items: start; }
 .analysis-column { min-width: 0; display: grid; gap: 18px; }
@@ -22,6 +20,5 @@
 .analysis-steps { padding-left: 22px; max-width: 75ch; line-height: 1.6; }
 .analysis-steps li { margin-block: 7px; }
 .analysis-studio :focus-visible, .analysis-links :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.course-bottom { display: flex; flex-wrap: wrap; gap: 6px; }
 @media (max-width: 900px) { .analysis-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .analysis-studio *, .analysis-links * { transition: none; animation: none; } }

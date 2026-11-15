@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {ArrowUpRight, ChartNoAxesCombined, FlaskConical} from 'lucide-react';
+import {FlaskConical} from 'lucide-react';
 import {BarChart, Metrics, Plot, PracticeQuestion, RangeControl} from './StudioControls';
 
 const topics = [
@@ -177,6 +177,13 @@ function Sampling() {
 }
 
 const experiments = {center: Center, probability: Probability, normal: Normal, correlation: Correlation, sampling: Sampling};
+const mistakes = {
+  center: 'An outlier can be a valid order. Investigate its cause before removing it.',
+  probability: 'An expected count is a long-run average. A single set of trials can finish above or below it.',
+  normal: 'Use the normal rule only when a normal model is a reasonable approximation for the data.',
+  correlation: 'A coefficient near zero can hide a nonlinear relationship. Look at the scatter plot.',
+  sampling: 'Increasing sample size reduces variability between sample means. The individual delivery times are still just as variable.',
+};
 
 export function StatisticsPicker({topic, onSelect}: {topic: StatisticsTopic; onSelect: (topic: StatisticsTopic) => void}) {
   return <div className="lab-picker" role="group" aria-label="Statistics topics">
@@ -191,18 +198,11 @@ export function StatisticsExperiment({topic}: {topic: StatisticsTopic}) {
       <div><h2 id="experiment-title">{topic.title}</h2><p>{topic.description}</p></div>
     </div>
     <Experiment/>
+    <details className="lab-hint"><summary>Common mistake</summary><p>{mistakes[topic.id]}</p></details>
     <details className="lab-hint"><summary>Hinglish memory hint</summary><p>{topic.hint}</p></details>
   </section>;
 }
 
-export function StatisticsQuestion({topic}: {topic: Exclude<StatisticsTopic, {id: 'center'}>}) {
-  return <PracticeQuestion {...topic.question}/>;
-}
-
-export function StatisticsFeature({onOpen, className = ''}: {onOpen: () => void; className?: string}) {
-  return <button className={'statistics-feature ' + className} onClick={onOpen}>
-    <span className="value-icon purple"><ChartNoAxesCombined size={25}/></span>
-    <span><strong>Statistics Learning Studio</strong><small>Five interactive labs with quizzes and Python practice</small></span>
-    <ArrowUpRight size={20}/>
-  </button>;
+export function StatisticsQuestion({topic, onPass}: {topic: Exclude<StatisticsTopic, {id: 'center'}>; onPass: () => void}) {
+  return <PracticeQuestion {...topic.question} onPass={onPass}/>;
 }

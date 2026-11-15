@@ -1,4 +1,3 @@
-.sql-feature { margin-block: 14px; }
 .sql-lessons { margin-block: 20px; }
 .sql-lessons button { display: inline-flex; align-items: center; gap: 7px; }
 .sql-workspace { display: grid; grid-template-columns: minmax(230px, 2fr) minmax(0, 3fr); gap: 18px; align-items: start; }
@@ -14,11 +13,6 @@
 .sql-keyboard, .sql-row-count { font-size: 0.82rem; }
 .sql-status { min-height: 22px; color: var(--text); }
 .sql-error { padding: 10px; border-left: 3px solid #d05753; background: var(--soft); color: var(--text); overflow-wrap: anywhere; }
-.sql-table-scroll { overflow: auto; max-height: 340px; border: 1px solid var(--line); border-radius: 9px; margin-bottom: 12px; }
-.sql-table-scroll table { border-collapse: collapse; width: 100%; text-align: left; font-size: 0.88rem; }
-.sql-table-scroll th, .sql-table-scroll td { padding: 9px 12px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
-.sql-table-scroll th { position: sticky; top: 0; background: var(--soft); }
-.sql-table-scroll tr:last-child td { border-bottom: 0; }
 .sql-null { color: var(--muted); }
 .sql-explorer { margin-top: 18px; }
 .sql-explorer .section-heading { flex-wrap: wrap; gap: 10px; }

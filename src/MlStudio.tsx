@@ -1,17 +1,19 @@
-import {ArrowRight, BrainCircuit} from 'lucide-react';
+import {ArrowRight} from 'lucide-react';
 import {CodeEditor} from './components';
-import {PracticeQuestion} from './StudioControls';
+import {LessonObjective, PracticeQuestion} from './StudioControls';
 import {MlExperiment} from './MlExperiments';
 import {mlExamples, mlLessons, type MlLesson, type MlLessonId} from './mlLessons';
 import {appUrl} from './lib/urls';
 import './ml-studio.css';
 
-export function MlFeature({onOpen}: {onOpen: () => void}) {
-  return <div className="analysis-links">
-    <button className="button" onClick={onOpen}><BrainCircuit size={19}/> Machine Learning Studio <ArrowRight size={15}/></button>
-    <a className="button" href={appUrl('/projects/iris-classification')}>Iris Classification project <ArrowRight size={15}/></a>
-  </div>;
-}
+const commonMistakes: Record<MlLessonId, string> = {
+  'ml-intro': 'Keep the target separate from the features. A value that is only known after the outcome cannot be used for a real prediction.',
+  'ml-regression': 'A good fit on training points does not establish accuracy on new observations. Predictions far beyond the observed x values are especially uncertain.',
+  'ml-knn': 'Features measured on different scales can dominate Euclidean distance. If you scale features, fit the scaling on training rows only.',
+  'ml-split': 'Changing the seed until the test score looks good makes that test split part of model selection.',
+  'ml-metrics': 'A classifier can achieve high accuracy while missing the minority class. Inspect false negatives and false positives separately.',
+  'ml-overfit': 'Choosing polynomial degree on the final test set can make the reported score optimistic. Compare degrees on validation data.',
+};
 
 export function MlStudio({lesson, progress, onOpen, onQuiz, onCode}: {
   lesson: MlLesson; progress?: {quiz: boolean; code: boolean}; onOpen: (id: MlLessonId) => void;
@@ -28,7 +30,8 @@ export function MlStudio({lesson, progress, onOpen, onQuiz, onCode}: {
     <div className="analysis-grid">
       <div className="analysis-column">
         <article className="experiment analysis-panel">
-          <h2>{lesson.title}</h2><p>{lesson.concept}</p>
+          <h2>{lesson.title}</h2><p>{lesson.concept}</p><LessonObjective>{lesson.task}</LessonObjective>
+          <details className="lab-hint"><summary>Common mistake</summary><p>{commonMistakes[lesson.id]}</p></details>
           <details className="lab-hint"><summary>Hinglish memory hint</summary><p>{lesson.hint}</p></details>
         </article>
         <MlExperiment id={lesson.id}/>
