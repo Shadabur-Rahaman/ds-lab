@@ -16,6 +16,17 @@
 .project-profile td,.project-profile th {white-space:nowrap}
 .project-profile .table-wrap {max-width:100%;overflow:auto}
 .project-workbench {min-width:0;scroll-margin-top:4rem}
+.capstone-bars {list-style:none;margin:.75rem 0;padding:0;display:grid;gap:.5rem}
+.capstone-bars li {display:grid;grid-template-columns:minmax(4rem,8rem) minmax(2rem,1fr) auto;align-items:center;gap:.5rem}
+.capstone-bar-track {background:var(--bg);border-radius:.3rem}
+.capstone-bar-track span {display:block;height:.75rem;background:var(--accent);border-radius:.3rem}
+.capstone-workbench figure {margin:1.2rem 0}
+.capstone-scatter svg {width:min(100%,410px);display:block}
+.capstone-scatter circle {fill:var(--accent);opacity:.72}
+.capstone-scatter text {fill:currentColor;font-size:12px}
+.capstone-preview {max-height:24rem;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:1rem;background:var(--bg)}
+.capstone-workbench textarea {display:block;width:100%;margin:.5rem 0}
+.capstone-workbench button.primary {margin-top:.65rem}
 @media(max-width:620px){
   .project-facts {grid-template-columns:minmax(0,1fr);gap:.25rem}
   .project-milestones ol {grid-template-columns:repeat(2,minmax(0,1fr))}

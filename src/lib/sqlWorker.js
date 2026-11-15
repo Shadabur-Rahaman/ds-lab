@@ -38,9 +38,10 @@ const seed = `
     (103,4,2,400), (104,5,2,180), (104,6,1,320), (105,3,3,175), (106,1,2,100);
 `;
 
-function createDatabase() {
+function createDatabase(extraSeed) {
   const db = new engine.Database();
   db.run(seed);
+  if(extraSeed)db.run(extraSeed);
   return db;
 }
 
@@ -75,18 +76,18 @@ function matches(actual, expected, ordered) {
 }
 
 self.onmessage = async ({data}) => {
-  const {id, action, query, answer, ordered} = data;
+  const {id, action, query, answer, ordered, extraSeed} = data;
   try {
     engine ??= await loadEngine();
-    database ??= createDatabase();
+    database ??= createDatabase(extraSeed);
     let result;
     let expected;
     let passed;
     if (action === 'reset') {
       database.close();
-      database = createDatabase();
+      database = createDatabase(extraSeed);
     } else if (action === 'check' || action === 'expected') {
-      const grading = createDatabase();
+      const grading = createDatabase(extraSeed);
       try {
         grading.run('PRAGMA query_only = ON');
         expected = execute(grading, answer);

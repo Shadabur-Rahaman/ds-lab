@@ -7,11 +7,14 @@ export const projectNotes = {
   'retail-project':'ds-lab:retail-findings',
   'iris-classification':'ds-lab:iris-classification-conclusion',
   'neural-classification':'ds-lab:neural-report',
+  'customer-purchases':'ds-lab:purchase-findings',
+  'student-performance':'ds-lab:student-findings',
 } as const;
 
 const sqlIds = new Set<string>(sqlLessons.map(item=>item.id));
 const keys = new Set([...Object.values(projectNotes), ...lessonIds.filter(id=>!Object.hasOwn(projectNotes,id))
   .map(id=>sqlIds.has(id) ? 'ds-lab:sql-draft:'+id : 'learning-ecosystem:ds:draft:'+id)]);
+keys.add('ds-lab:sql-draft:customer-purchases');
 for(const id of Object.keys(projectCatalog) as ProjectId[]) {
   keys.add('learning-ecosystem:ds:draft:'+projectDraftId(id));
   keys.add(projectReportKey(id));

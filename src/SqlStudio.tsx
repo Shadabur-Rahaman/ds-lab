@@ -9,6 +9,20 @@ import './sql-studio.css';
 type Grid = {columns: string[]; rows: (string | number | null | Uint8Array)[][]; truncated: boolean};
 type Reply = {id: number; result?: Grid; expected?: Grid; passed?: boolean; error?: string};
 type Action = 'initialize' | 'run' | 'check' | 'expected' | 'reset';
+type QueryExercise = {
+  id: SqlLesson['id'] | 'customer-purchases';
+  title: string;
+  concept: string;
+  analogy: string;
+  example: string;
+  starter: string;
+  challenge: string;
+  answer: string;
+  ordered: boolean;
+  hint: string;
+  mistake: string;
+  memory: string;
+};
 const knowledge = [
   {prompt:'How do you make the first three results reproducible?',options:['Use LIMIT alone','Use ORDER BY before LIMIT'],answer:1,explanation:'ORDER BY defines which rows come first. LIMIT then takes three of those rows.'},
   {prompt:'Which clause keeps rows that satisfy a condition?',options:['WHERE','ORDER BY'],answer:0,explanation:'WHERE filters rows. ORDER BY sorts the surviving rows.'},
@@ -33,8 +47,9 @@ function ResultGrid({result, title}: {result: Grid; title: string}) {
   </>;
 }
 
-export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
-  lesson: SqlLesson;
+export function SqlStudio({lesson, completed, onSelect, onStart, onPass, project}: {
+  lesson: QueryExercise;
+  project?: {seed:string; independent:boolean};
   completed: (id: SqlLesson['id']) => boolean;
   onSelect: (id: SqlLesson['id']) => void;
   onStart: () => void;
@@ -51,7 +66,8 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
   const [result, setResult] = useState<Grid>();
   const [expected, setExpected] = useState<Grid>();
   const [preview, setPreview] = useState<Grid>();
-  const [table, setTable] = useState<(typeof tables)[number]>('Customers');
+  const availableTables:readonly string[]=project?['PurchaseLines']:tables;
+  const [table, setTable] = useState(project?'PurchaseLines':'Customers');
   const [schema, setSchema] = useState(false);
   const [message, setMessage] = useState('Loading SQLite…');
   const [error, setError] = useState('');
@@ -60,7 +76,7 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
   const requestId = useRef(0);
   const active = useRef(false);
   const index = sqlLessons.findIndex(item => item.id === lesson.id);
-  const next = sqlLessons[index + 1];
+  const next = project ? undefined : sqlLessons[index + 1];
 
   useEffect(()=>watchLearnerText(draftKey, setQuery), [draftKey]);
   function updateQuery(value: string) {
@@ -115,7 +131,7 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
         }
         setResult(data.result);
         if (action === 'check') {
-          setMessage(data.passed ? 'Challenge passed. Lesson complete.' : 'The rows differ from the expected result. Compare the columns, values, and any requested sort order.');
+          setMessage(data.passed ? (project?'SQL challenge passed.':'Challenge passed. Lesson complete.') : 'The rows differ from the expected result. Compare the columns, values, and any requested sort order.');
           if (data.passed) onPass();
           else onStart();
         } else {
@@ -124,7 +140,7 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
         }
       };
       timer.current = window.setTimeout(() => fail('SQLite timed out. The sample database will restart on the next run.'), action === 'initialize' ? 30_000 : 12_000);
-      worker.current.postMessage({id, action, query: sql, answer: lesson.answer, ordered: lesson.ordered});
+      worker.current.postMessage({id, action, query: sql, answer: lesson.answer, ordered: lesson.ordered, extraSeed: project?.seed});
     } catch {
       fail('SQLite could not start. Run the query to try again.');
     }
@@ -160,14 +176,14 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
   }
 
   return <div className="sql-studio">
-    <div className="lesson-heading v5-heading"><div><h1>SQL Learning Studio</h1><p>Explore a synthetic retail database and run real SQLite queries.</p></div></div>
+    {!project&&<><div className="lesson-heading v5-heading"><div><h1>SQL Learning Studio</h1><p>Explore a synthetic retail database and run real SQLite queries.</p></div></div>
     <nav className="lab-picker sql-lessons" aria-label="SQL lessons">
       {sqlLessons.map(item => <button key={item.id} aria-current={lesson.id === item.id ? 'page' : undefined}
         aria-pressed={lesson.id === item.id} onClick={() => onSelect(item.id)}>{item.title}{completed(item.id) && <Check size={15} aria-label="Completed"/>}</button>)}
-    </nav>
+    </nav></>}
     <div className="sql-workspace">
       <article className="experiment sql-panel sql-guide" aria-labelledby="sql-lesson-title">
-        <span className="eyebrow">Lesson {index + 1} of {sqlLessons.length}</span>
+        {!project&&<span className="eyebrow">Lesson {index + 1} of {sqlLessons.length}</span>}
         <h2 id="sql-lesson-title">{lesson.title}</h2>
         <p>{lesson.concept}</p><p>{lesson.analogy}</p>
         {lesson.id === 'sql-joins' && <figure className="sql-relationship">
@@ -176,12 +192,12 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
           <div><span>Products</span><ArrowRight size={16}/><span>OrderItems</span></div>
           <p>Each arrow goes from one record to its many related records.</p>
         </figure>}
-        <h3>Worked example</h3><pre><code>{lesson.example}</code></pre>
-        <button className="button" disabled={!!busy} onClick={() => request('run', lesson.example, false, true)}>Run example</button>
+        {!project?.independent&&<><h3>Worked example</h3><pre><code>{lesson.example}</code></pre>
+        <button className="button" disabled={!!busy} onClick={() => request('run', lesson.example, false, true)}>Run example</button></>}
         <LessonObjective>{lesson.challenge}</LessonObjective>
-        <details className="lab-hint"><summary>Hint</summary><p>{lesson.hint}</p></details>
+        {!project?.independent&&<><details className="lab-hint"><summary>Hint</summary><p>{lesson.hint}</p></details>
         <details className="lab-hint"><summary>Common mistake</summary><p>{lesson.mistake}</p></details>
-        <details className="lab-hint"><summary>Hinglish memory hint</summary><p>{lesson.memory}</p></details>
+        <details className="lab-hint"><summary>Hinglish memory hint</summary><p>{lesson.memory}</p></details></>}
       </article>
       <div className="sql-workbench">
         <section className="experiment sql-panel" aria-labelledby="editor-title">
@@ -206,7 +222,7 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
           {result ? <ResultGrid title="Query result rows" result={result}/> : <p>Run a query to see its results.</p>}
           <button className="text-link" disabled={!!busy} onClick={() => expected ? setExpected(undefined) : request('expected')}>{expected ? 'Hide expected result' : 'Show expected result'}</button>
           {expected && <ResultGrid title="Expected result rows" result={expected}/>}
-          {completed(lesson.id) && next && <button className="button" onClick={() => onSelect(next.id)}>Next lesson <ArrowRight size={15}/></button>}
+          {next && lesson.id!=='customer-purchases' && completed(lesson.id) && <button className="button" onClick={() => onSelect(next.id)}>Next lesson <ArrowRight size={15}/></button>}
         </section>
       </div>
     </div>
@@ -215,11 +231,11 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass}: {
         <button className="button" disabled={!!busy} onClick={() => { setSchema(false); request('reset'); }}><RotateCcw size={15}/> Reset database</button>
       </div>
       <div className="lab-actions" role="group" aria-label="Sample tables">
-        {tables.map(name => <button key={name} className="button" disabled={!!busy} aria-pressed={table === name} onClick={() => viewTable(name, false)}>{name}</button>)}
+        {availableTables.map(name => <button key={name} className="button" disabled={!!busy} aria-pressed={table === name} onClick={() => viewTable(name, false)}>{name}</button>)}
         <button className="text-link" disabled={!!busy} onClick={() => viewTable(table, !schema)}>{schema ? 'Show rows' : 'Show schema'}</button>
       </div>
       {preview && <ResultGrid title={table + (schema ? ' schema' : ' sample rows')} result={preview}/>}
     </section>
-    <PracticeQuestion key={lesson.id} {...knowledge[index]}/>
+    {!project&&<PracticeQuestion key={lesson.id} {...knowledge[index]}/>}
   </div>;
 }

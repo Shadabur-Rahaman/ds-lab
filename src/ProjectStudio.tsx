@@ -2,14 +2,15 @@ import {useEffect,useState,type ReactNode} from 'react';
 import {ArrowLeft,Check,Download} from 'lucide-react';
 import {CodeEditor} from './components';
 import {datasetProfile,projectExercises} from './projectExercises';
-import {allProjectBits,projectBits,projectCatalog,projectDraftId,projectModeKey,projectReportKey,projectSteps,type ProjectId} from './projectCatalog';
+import {allProjectBits,projectBits,projectCatalog,projectDraftId,projectModeKey,purchasePythonBit,purchaseSqlBit,projectReportKey,projectSteps,type ProjectId} from './projectCatalog';
 import {readLearnerText,watchLearnerText,writeLearnerText} from './lib/learnerData';
 import {downloadText} from './lib/downloadText';
 import {appUrl} from './lib/urls';
 import './project-studio.css';
 
-export function ProjectStudio({id,studio,legacyComplete,mark,children}:{
+export function ProjectStudio({id,studio,legacyComplete,mark,children,beforePython}:{
   id:ProjectId; studio?:number; legacyComplete:boolean; mark:(bit:number)=>void; children:ReactNode;
+  beforePython?:(independent:boolean)=>ReactNode;
 }) {
   const project=projectCatalog[id];
   const exercise=projectExercises[id];
@@ -57,7 +58,7 @@ export function ProjectStudio({id,studio,legacyComplete,mark,children}:{
       <ol>{projectSteps.map(([name,objective],index)=>{
         const done=Boolean(bits & (1<<index));
         return <li key={name}><strong>{done&&<Check size={16} aria-hidden="true"/>}{name}</strong>
-          <small>{done?'Verified':objective}</small></li>;
+          <small>{done?'Verified':id==='customer-purchases'&&index===2?'Pass both the SQLite and Pandas checks.':objective}</small></li>;
       })}</ol>
       <p role="status">{complete?'All six Project Studio milestones complete.':legacyComplete?'Your earlier project completion is preserved. Complete these steps to add new Studio evidence.':`${projectSteps.filter((_,index)=>bits & (1<<index)).length} of 6 milestones verified.`}</p>
       {mode==='guided'&&<p className="muted">Keep one computed value and one limitation in your findings. {project.analysis}</p>}
@@ -89,8 +90,10 @@ export function ProjectStudio({id,studio,legacyComplete,mark,children}:{
       {profile&&<p role="status"><strong>{profile.column}</strong> · {profile.rows} rows · {profile.missing} missing · {profile.distinct} distinct nonblank values</p>}
       <button className="button small" onClick={()=>downloadText(exercise.file.name,exercise.file.csv,'text/csv;charset=utf-8')}><Download size={15}/> Download exercise data</button>
     </section>
+    {beforePython?.(mode==='independent')}
     <section aria-labelledby="studio-practice"><h2 id="studio-practice">Python workspace</h2>
-      <CodeEditor lesson={exercise} draftId={projectDraftId(id)} onPass={()=>mark(projectBits.implement)} independent={mode==='independent'}/>
+      <CodeEditor lesson={exercise} draftId={projectDraftId(id)} onPass={()=>mark(id==='customer-purchases'?purchasePythonBit:projectBits.implement)} independent={mode==='independent'}/>
+      {id==='customer-purchases'&&<p className="muted">SQLite check: {studio && studio&purchaseSqlBit?'verified':'pending'} · Pandas check: {studio && studio&purchasePythonBit?'verified':'pending'}</p>}
     </section>
     <div id="studio-results" className="project-workbench">{children}</div>
   </div>;

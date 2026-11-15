@@ -1,6 +1,7 @@
 import iris from '../public/datasets/iris.csv?raw';
 import retail from '../public/datasets/retail-sales.csv?raw';
 import {neuralDataset} from './lib/neural';
+import {purchaseCsv,purchaseSummary,studentCsv,studentExperiment,studentDefaultSeed} from './lib/capstoneData';
 import type {ProjectId} from './projectCatalog';
 
 const neural = ['x1,x2,label', ...neuralDataset(17,.3,0).rows.map(row=>[...row.x,row.y].join(','))].join('\n');
@@ -13,7 +14,36 @@ with open("${name}", newline="") as file:
 
 # Build your result from rows.
 `;
+const purchaseExpected=purchaseSummary();
+const studentExpected=studentExperiment('study_hours',studentDefaultSeed);
 export const projectExercises = {
+  'customer-purchases': {
+    file:{name:'customer-purchases.csv',csv:purchaseCsv},
+    starter:`import pandas as pd
+lines = pd.read_csv("customer-purchases.csv")
+print(lines.head())
+# Clean the rows and calculate your revenue_by_category.
+`,
+    challenge:'Using Pandas, produce revenue_by_category (a Series or dictionary), total_revenue and retained_count from clean rows. Drop exact duplicates, exclude missing or nonpositive quantity and missing or negative price, and normalize category case and whitespace. Use Unknown for blank categories.',
+    hint:'Try drop_duplicates(), dropna() on the numeric columns, str.strip().str.title() and groupby() on a computed line revenue.',
+    tests:`from math import isclose as _close
+_got = dict(revenue_by_category)
+_expected = ${JSON.stringify(Object.fromEntries(purchaseExpected.categories))}
+assert retained_count == ${purchaseExpected.retained}, "Check the retained row count after cleaning."
+assert set(_got) == set(_expected), "Check category spelling and missing labels."
+assert all(_close(_got[k],v,abs_tol=0.001) for k,v in _expected.items()), "Check the grouped amounts."
+assert _close(total_revenue,${purchaseExpected.total},abs_tol=0.001), "Check the grand total."`,
+  },
+  'student-performance': {
+    file:{name:'student-performance.csv',csv:studentCsv},
+    starter:starter('student-performance.csv'),
+    challenge:'Use study_hours only. Drop rows missing that feature, use fixed_holdout=0 for fitting and fixed_holdout=1 for evaluation. Fit least squares on the training rows, then set mae and rmse to held-out errors and baseline_mae to the held-out MAE from the training mean.',
+    hint:'For the line, divide sum((x−mean_x)(y−mean_y)) by sum((x−mean_x)²). The intercept is mean_y minus slope times mean_x. Compute the baseline from those same training targets.',
+    tests:`from math import isclose as _close
+assert _close(mae,${studentExpected.model.mae},abs_tol=0.001), "Check model MAE on the held-out rows."
+assert _close(rmse,${Math.sqrt(studentExpected.model.mse!)},abs_tol=0.001), "Check the held-out RMSE."
+assert _close(baseline_mae,${studentExpected.reference.mae},abs_tol=0.001), "Predict the training target mean for each held-out row."`,
+  },
   'iris-eda': {
     file:irisFile, starter:starter(irisFile.name),
     challenge:'Create means, a dictionary mapping each Iris species to its mean petal length in centimetres.',

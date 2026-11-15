@@ -29,6 +29,12 @@ V11 projects already had working datasets, interactive analyses, domain checks a
 
 Project reports are saved as local snapshots. Once all six milestones are verified, the portfolio can export Markdown or JSON with the last report's actual results and learner findings. Guided and independent modes use the same checks and saved code, with fewer hints in independent mode. Textual interpretations are reviewed using the project criteria and learner judgment.
 
+Customer Purchase Analytics uses a shared synthetic line-item ledger in SQLite and Pandas. Its Implement milestone requires both checks. Student Performance Prediction compares one-feature least squares to a training-mean baseline on the same held-out observations. The downloadable student CSV identifies a fixed split for the Python exercise. The interactive model allows a different seed or pre-exam feature.
+
+## Release checkout
+
+Use the canonical checkout for one release at a time. Before queuing a manifest, pause other development sessions that write to that checkout. For files shared by a release and unfinished work, preserve verified copies outside the checkout and isolate the release hunks. Wait for the worker's terminal result and a clear queue before restoring parked work. The worker rechecks the canonical files before publishing, even after its isolated tests pass. See [release handoff](scripts/RELEASE.md).
+
 ## Optional account sync
 
 The existing Pages workflow does not inject Supabase settings. Guest progress, notes and drafts work without them. For an authorized Supabase deployment, apply `001_progress.sql` and `002_learner_sync.sql` and supply `VITE_SUPABASE_URL` plus `VITE_SUPABASE_PUBLISHABLE_KEY` (or the legacy public `VITE_SUPABASE_ANON_KEY`) at build time. Use a public browser key and configure the existing OTP redirect to the deployed dashboard. Server keys belong outside Vite environment variables.

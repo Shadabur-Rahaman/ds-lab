@@ -43,6 +43,28 @@ export const projectCatalog = {
     outcome: 'Connect learning rate, model complexity and generalization to observed behavior.',
     question: 'What does the model predict?', options: ['A binary class', 'The learning rate'], answer: 0,
   },
+  'customer-purchases': {
+    level:'Intermediate',minutes:55,skills:['SQLite','Pandas','Data cleaning','Revenue analysis'],
+    problem:'Which categories, products and customers account for recorded shop revenue?',
+    dataset:'Synthetic January–March 2026 purchase ledger. Each row is a line item with an order, customer, product, quantity and unit price in rupees.',
+    prerequisite:'SQL GROUP BY, Pandas and missing values',
+    goal:'Clean the same purchase data in SQLite and Pandas, then explain where the observed revenue comes from.',
+    analysis:'Compute the purchase summary and compare category, customer and order views.',
+    limitation:'Synthetic records and excluded lines limit interpretation. Recorded revenue measures neither profit nor future demand.',
+    outcome:'Reconcile two independent analytical approaches and explain missing-data decisions.',
+    question:'Which value belongs in the revenue formula?',options:['The price recorded on each purchase line','The number of unique customers'],answer:0,
+  },
+  'student-performance': {
+    level:'Intermediate',minutes:55,skills:['Python','Data preparation','Linear regression','Error analysis'],
+    problem:'How does one pre-exam feature compare with a mean baseline for predicting a synthetic final score?',
+    dataset:'96 generated records with study hours, prior attendance, prior assessment score, final score and a post-exam pass indicator.',
+    prerequisite:'Train/test splitting, averages and regression errors',
+    goal:'Profile features, exclude leakage, fit a line on training observations and compare held-out predictions.',
+    analysis:'Fit and evaluate a reproducible split, then inspect mismatches between predicted and actual scores.',
+    limitation:'The dataset is synthetic. Its associations do not establish relationships in real students or support educational decisions.',
+    outcome:'Explain missing cases, data leakage and whether a model beats a baseline on the same test split.',
+    question:'Which variable is unavailable before the exam?',options:['Weekly study hours','Post-exam pass indicator'],answer:1,
+  },
 } as const;
 
 export type ProjectId = keyof typeof projectCatalog;
@@ -57,6 +79,15 @@ export const projectSteps = [
 export const projectBits = {understand:1, explore:2, implement:4, analyze:8, evaluate:16, present:32};
 export const allProjectBits = Object.values(projectBits).reduce((total, bit) => total | bit, 0);
 export const legacyProjectBit = 64;
+export const purchaseSqlBit=128;
+export const purchasePythonBit=256;
+export const isNewCapstone=(id:string)=>id==='customer-purchases'||id==='student-performance';
+export function normalizeProjectStudio(id:string,bits:number) {
+  const studio=isNewCapstone(id)?bits&~legacyProjectBit:bits;
+  if(id!=='customer-purchases')return studio;
+  const evidence=purchaseSqlBit|purchasePythonBit;
+  return (studio & ~projectBits.implement) | ((studio&evidence)===evidence ? projectBits.implement : 0);
+}
 export const isProject = (id:string):id is ProjectId => Object.hasOwn(projectCatalog,id);
 export const projectDraftId = (id:ProjectId) => id+'-studio';
 export const projectReportKey = (id:ProjectId) => 'ds-lab:project-report:'+id;
