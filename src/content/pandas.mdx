@@ -1,0 +1,13 @@
+## Messy data. Clear decisions.
+
+Missing values, repeated records and inconsistent labels can quietly change an analysis. Start by inspecting your table, choose a policy, then check what changed.
+
+### Clean a café order table
+
+This **synthetic dataset** has six rows: a repeated order, a missing amount and city labels with extra spaces. First remove the exact duplicate. Then fill the missing amount with the median of the remaining known amounts. Finally trim and normalize city labels.
+
+### Keep the meaning intact
+
+Median imputation is a teaching policy here, not a universal rule. Keep an indicator of which values were missing in real work, and fit imputation on training data only when building a model.
+
+> Pehle inspect, phir correct. Check row counts and missing values before and after cleaning.
