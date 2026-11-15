@@ -1,4 +1,6 @@
 import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
+import {downloadText} from './lib/downloadText';
+import type {ProjectActions} from './projectCatalog';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Metrics, PracticeQuestion, RangeControl} from './StudioControls';
 import {Curve, display} from './NeuralPlot';
@@ -28,7 +30,7 @@ function DecisionPlot({params, rows, project}: {params?: number[]; rows: Row[]; 
 
 const percentage = (value: number | null) => value === null ? 'Undefined' : (100*value).toFixed(1)+'%';
 
-export function TrainingLab({project = false, onExport}: {project?: boolean; onExport?: () => void}) {
+export function TrainingLab({project = false, onExport,onAnalyze}: {project?: boolean}&Partial<ProjectActions>) {
   const [units,setUnits] = useState(6);
   const [rate,setRate] = useState(.8);
   const [epochs,setEpochs] = useState(500);
@@ -73,7 +75,7 @@ export function TrainingLab({project = false, onExport}: {project?: boolean; onE
         setStatus(epoch===epochs ? 'Training complete.' : 'Training epoch '+epoch+' of '+epochs+'.');
         if (epoch===epochs) {
           const run = {params,trainLoss,testLoss};
-          setState(run);setBusy(false);
+          setState(run);setBusy(false);onAnalyze?.();
         } else job.current=setTimeout(chunk,0);
       } catch (problem) {
         setBusy(false);setStatus('Training stopped.');
@@ -99,10 +101,8 @@ export function TrainingLab({project = false, onExport}: {project?: boolean; onE
       'Mistaken held-out row IDs: '+(result.mistakes.map(row=>row.id).join(', ')||'None')+'.','',
       '## Learner conclusion',finding.trim(),
     ].join('\n');
-    const url=URL.createObjectURL(new Blob([report],{type:'text/markdown;charset=utf-8'}));
-    const link=document.createElement('a');link.href=url;link.download='neural-classification-report.md';link.click();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-    onExport?.();
+    downloadText('neural-classification-report.md',report,'text/markdown;charset=utf-8');
+    onExport?.(report);
   }
   const metric = (name: string,value: number,min: number,max: number,step: number,set: (v:number)=>void) =>
     <RangeControl label={name} value={value} min={min} max={max} step={step} onChange={change=>{reset();set(change);}}/>;
@@ -154,14 +154,14 @@ export function TrainingLab({project = false, onExport}: {project?: boolean; onE
     </section>}
   </div>;
 }
-export function NeuralProject({passed,exported,onQuiz,onExport}: {passed:boolean;exported:boolean;onQuiz:()=>void;onExport:()=>void}) {
+export function NeuralProject({passed,exported,studioCompleted,onQuiz,onExport,onAnalyze}: {passed:boolean;exported:boolean;studioCompleted:boolean;onQuiz:()=>void}&ProjectActions) {
   return <div className="analysis-studio neural-studio">
     <div className="page-heading v5-heading"><h1>Neural Network Classification — From Features to Predictions</h1></div>
     <ol className="analysis-steps"><li>Inspect the two features and binary labels.</li><li>Choose a seed, split, hidden layer size and learning rate. Train the network.</li>
       <li>Compare the loss curves, predicted regions and held-out mistakes. Explain one finding and one limitation in your report.</li></ol>
-    <section className="experiment analysis-panel"><TrainingLab project onExport={onExport}/></section>
+    <section className="experiment analysis-panel"><TrainingLab project onExport={onExport} onAnalyze={onAnalyze}/></section>
     <PracticeQuestion prompt="Which rows were excluded from weight updates?" options={['Training rows','Held-out rows']} answer={1}
       explanation="Only training rows contribute gradients. Held-out rows are scored separately." onPass={onQuiz}/>
-    <p className="callout">{passed&&exported?'Project complete.':'Pass the check and export a report to complete the project.'}</p>
+    <p className="callout">{studioCompleted?'Project complete.':passed&&exported?'Report and interpretation saved. See the Studio checklist for remaining milestones.':'Pass the interpretation check and export a report to verify these milestones.'}</p>
   </div>;
 }

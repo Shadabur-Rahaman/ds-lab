@@ -5,37 +5,67 @@ import {projectNotes,readLearnerText,watchLearnerText,parseBackup,snapshot,type 
 import type {Progress} from './lib/progress';
 import type {LearningId} from './data';
 import {appUrl} from './lib/urls';
-
-const details={
-  'iris-eda':['Explore three Iris species through measurements and a simple decision rule.','Exploration · interpretation'],
-  'retail-project':['Clean retail records, check quality and explain the patterns.','Data cleaning · visualization'],
-  'iris-classification':['Train a classifier and inspect its held-out results.','Classification · model evaluation'],
-  'neural-classification':['Train a neural network and compare training and held-out results.','Neural networks · error analysis'],
-} as const;
+import {allProjectBits,projectCatalog,projectReportKey,projectSteps,type ProjectId} from './projectCatalog';
+import {downloadText} from './lib/downloadText';
 
 export function Portfolio({progress}:{progress:Progress}) {
   const [notes,setNotes]=useState(()=>Object.fromEntries(Object.values(projectNotes).map(key=>[key,readLearnerText(key)])));
+  const [reports,setReports]=useState(()=>Object.fromEntries(projects.map(({id})=>[id,readLearnerText(projectReportKey(id))])));
   useEffect(()=>{
     const stop=Object.values(projectNotes).map(key=>watchLearnerText(key,value=>setNotes(current=>({...current,[key]:value}))));
+    stop.push(...projects.map(({id})=>watchLearnerText(projectReportKey(id),report=>setReports(current=>({...current,[id]:report})))));
     return ()=>stop.forEach(unsubscribe=>unsubscribe());
   },[]);
+  const completed=projects.filter(({id})=>lessonState(progress,id)==='Completed');
+  const started=projects.filter(({id})=>!!(progress[id]?.viewedAt||progress[id]?.quiz||progress[id]?.code));
+  const skills=[...new Set(completed.flatMap(({id})=>[...projectCatalog[id].skills]))];
+  function exportPortfolio(id:ProjectId, format:'md'|'json') {
+    const report=reports[id];
+    if(!report)return;
+    const project=projectCatalog[id];
+    const title=projects.find(item=>item.id===id)!.title;
+    const milestones=projectSteps.filter((_,index)=>(progress[id]?.studio??0)&(1<<index)).map(([step,objective])=>({step,objective}));
+    const data={title,problem:project.problem,dataset:project.dataset,skills:project.skills,milestones,
+      visualization:project.analysis,limitations:project.limitation,learningOutcome:project.outcome,report};
+    if(format==='json') {
+      downloadText(id+'-portfolio.json',JSON.stringify(data,null,2),'application/json');
+    }else{
+      const text=[`# ${title}`,'','## Problem',data.problem,'','## Dataset',data.dataset,'','## Tools and techniques',data.skills.join(', '),'',
+        '## Implementation milestones',...milestones.map(({step,objective})=>`- **${step}** · ${objective}`),'','## Visualization and interpretation',
+        data.visualization,'','## Limitations',data.limitations,'','## Learning outcome',data.learningOutcome,'',
+        '## Computed results and learner findings','',report.replace(/^# .+\r?\n/,'')].join('\n');
+      downloadText(id+'-portfolio.md',text,'text/markdown;charset=utf-8');
+    }
+  }
   return <section className="section" id="project-portfolio" aria-labelledby="portfolio-heading">
     <h2 id="portfolio-heading">Project portfolio</h2>
+    <p>{started.length} started · {completed.length} completed · {projects.filter(({id})=>progress[id]?.code).length} reports generated</p>
+    {!!skills.length&&<p><strong>Skills demonstrated</strong> {skills.join(' · ')}</p>}
     <div className="course-grid v5-course-grid">{projects.map(project=>{
       const entry=progress[project.id];
-      const [description,skills]=details[project.id];
+      const details=projectCatalog[project.id];
       const note=notes[projectNotes[project.id]];
+      const report=reports[project.id];
       const state=lessonState(progress,project.id);
+      const studio=entry?.studio??0;
       return <article className="course-card" key={project.id}>
         <span className="chip neutral">{state}</span><h3>{project.title}</h3>
-        <p>{description}</p><p>{skills}</p>
+        <p>{details.problem}</p><p>{details.level} · {details.minutes} min estimated · {details.skills.join(' · ')}</p>
         <ul className="portfolio-milestones"><li>{entry?.quiz?'Knowledge check passed':'Knowledge check pending'}</li>
-          <li>{entry?.code?'Report generated':'Report pending'}</li><li>{note?.trim()?'Notes saved in this browser':'No saved notes yet'}</li></ul>
+          <li>{entry?.code?'Report generated':'Report pending'}</li><li>{note?.trim()?'Notes saved in this browser':'No saved notes yet'}</li>
+          <li>{projectSteps.filter((_,index)=>studio&(1<<index)).length} of 6 Studio milestones</li></ul>
         {note?.trim() && <details><summary>Saved notes</summary><p className="portfolio-notes">{note}</p></details>}
+        {report&&<div className="project-export-actions">
+          <button className="button small" onClick={()=>downloadText(project.id+'-report.md',report,'text/markdown;charset=utf-8')}>Download saved report</button>
+          {(studio&allProjectBits)===allProjectBits&&<>
+            <button className="button small" onClick={()=>exportPortfolio(project.id,'md')}>Export portfolio Markdown</button>
+            <button className="button small" onClick={()=>exportPortfolio(project.id,'json')}>Export portfolio JSON</button>
+          </>}
+        </div>}
         <a className="button small" href={appUrl(project.path)}>{state==='Ready to start'?'Open project':'Resume project'} <ArrowRight size={14}/></a>
       </article>;
     })}</div>
-    <p className="muted">Open a project to review notes and generate its report with the project’s own data and controls.</p>
+    <p className="muted">Reports are saved on this browser. Review your findings before sharing an export.</p>
   </section>;
 }
 

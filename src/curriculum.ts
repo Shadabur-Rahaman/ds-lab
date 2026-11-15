@@ -4,6 +4,7 @@ import {irisClassificationId, mlLessons} from './mlLessons';
 import {deepLessons, neuralProjectId} from './deepLessons';
 import {sqlLessons} from './sqlLessons';
 import type {Progress} from './lib/progress';
+import {allProjectBits,isProject,legacyProjectBit} from './projectCatalog';
 
 type LearningItem = {id: LearningId; title: string; description: string; course: string; color: string; icon: string};
 const fromAnalysis = (course: 'NumPy' | 'Pandas') => analysisLessons.filter(lesson => lesson.course === course).map(lesson => ({
@@ -50,6 +51,10 @@ export const learningItems: LearningItem[] = [...track,
 
 export function lessonState(progress: Progress, id: LearningId) {
   const entry = progress[id];
+  if(isProject(id) && entry?.studio!==undefined) {
+    if((entry.studio&allProjectBits)===allProjectBits || (entry.studio&legacyProjectBit)) return 'Completed';
+    return 'In progress';
+  }
   if (id === chartLessonId && entry?.quiz) return 'Completed';
   if (entry?.code && (entry.quiz || id.startsWith('sql-'))) return 'Completed';
   if (entry?.quiz || entry?.code || entry?.started) return 'In progress';

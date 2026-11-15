@@ -1,4 +1,7 @@
 import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
+import {downloadText} from './lib/downloadText';
+import {pearson} from './lib/retail';
+import type {ProjectActions} from './projectCatalog';
 import {appUrl} from './lib/urls';
 import {useEffect, useState} from 'react';
 import {ArrowLeft, Download} from 'lucide-react';
@@ -24,8 +27,11 @@ const summary = (column: number) => species.map(name => {
  const values = measurements.filter(row => row.species === name).map(row => row.values[column]);
  return {name, values, mean: values.reduce((sum, value) => sum + value, 0) / values.length};
 });
+const petalRanges = summary(2).map(({name,values})=>({name,min:Math.min(...values),max:Math.max(...values)}));
+const separatedSpecies = petalRanges.find(group=>petalRanges.every(other=>
+  other.name===group.name || group.max<other.min || other.max<group.min))?.name;
 
-export default function IrisProject({onQuiz,onExport}: {onQuiz:()=>void;onExport:()=>void}) {
+export default function IrisProject({onQuiz,onExport,onAnalyze}: {onQuiz:()=>void}&ProjectActions) {
  const [column, setColumn] = useState(2);
  const [answer, setAnswer] = useState('');
  const [checked, setChecked] = useState(false);
@@ -37,21 +43,20 @@ export default function IrisProject({onQuiz,onExport}: {onQuiz:()=>void;onExport
  const [saveStatus, setSaveStatus] = useState('');
   useEffect(()=>watchLearnerText('ds-lab:iris:report', setFinding), []);
  const groups = summary(column);
+ const comparison = column===3 ? 2 : 3;
+ const correlation = pearson(measurements.map(row=>row.values[column]),measurements.map(row=>row.values[comparison]));
  const scale = Math.ceil(Math.max(...groups.flatMap(group => group.values)));
- const passed = checked && answer === 'setosa';
+ const passed = checked && answer === separatedSpecies;
  const {falsePositives, falseNegatives} = countErrors(training, cutoff);
  const testErrors = lockedCutoff === null ? null : countErrors(holdout, lockedCutoff);
 
  function exportReport() {
-  const reportGroups = summary(2);
-  const body = `# Iris Exploratory Data Analysis\n\nDataset: Fisher (1936), UCI Machine Learning Repository, CC BY 4.0.\nhttps://doi.org/10.24432/C56C76\n\n## Mean petal length by species\n${reportGroups.map(group => `- ${group.name}: ${group.mean.toFixed(2)} cm (n=${group.values.length})`).join('\n')}\n\n## My finding and limitation\n${finding.trim()}\n`;
-  const url = URL.createObjectURL(new Blob([body], {type:'text/markdown;charset=utf-8'}));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'iris-eda-report.md';
-  link.click();
-  onExport();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const reportGroups = summary(column);
+  const correlationEvidence = 'Pearson correlation with '+columns[comparison]+': '+(correlation?.toFixed(3)??'undefined')+'.';
+  const ruleEvidence = testErrors ? 'Locked cutoff: '+lockedCutoff?.toFixed(1)+' cm. Held-out errors: '+testErrors.falsePositives+' false positives and '+testErrors.falseNegatives+' false negatives on 30 rows.' : 'No held-out cutoff was evaluated before this export.';
+  const body = `# Iris Exploratory Data Analysis\n\nDataset: Fisher (1936), UCI Machine Learning Repository, CC BY 4.0.\nhttps://doi.org/10.24432/C56C76\n\n## Mean ${columns[column]} by species\n${reportGroups.map(group => `- ${group.name}: ${group.mean.toFixed(2)} cm (n=${group.values.length})`).join('\n')}\n\n## Visual and held-out evidence\n${correlationEvidence}\n${ruleEvidence}\n\n## My finding and limitation\n${finding.trim()}\n`;
+  downloadText('iris-eda-report.md',body,'text/markdown;charset=utf-8');
+  onExport(body);
  }
 
  return <>
@@ -63,12 +68,12 @@ export default function IrisProject({onQuiz,onExport}: {onQuiz:()=>void;onExport
     <section className="experiment"><h2>2. Compare measurements</h2><label className="project-label" htmlFor="iris-column">Measurement</label><select id="iris-column" value={column} onChange={e => setColumn(Number(e.target.value))}>{columns.map((name, i) => <option key={name} value={i}>{name}</option>)}</select>
      <div className="iris-chart" aria-label={`${columns[column]} by species`}>
       {groups.map(({name, values, mean}) => <div key={name} className="iris-group"><div><strong>{name}</strong><span>Mean {mean.toFixed(2)} cm · range {Math.min(...values).toFixed(1)}–{Math.max(...values).toFixed(1)} cm</span></div><div className="iris-track" aria-hidden="true">{values.map((value,i) => <i key={i} style={{left:`${value / scale * 100}%`, top:`${5 + (i % 5) * 6}px`}}/>)}<b style={{left:`${mean / scale * 100}%`}}/></div></div>)}
-      <small className="muted">0–{scale} cm · dots are flowers · vertical marks are means</small>
+      <p>Pearson correlation with {columns[comparison]}: {correlation?.toFixed(3) ?? 'Undefined'}. This combines all three species.</p><small className="muted">0–{scale} cm · dots are flowers · vertical marks are means</small>
      </div><p className="callout">Compare ranges as well as means. If two ranges overlap, a single cutoff on that measurement cannot perfectly separate those two species in this sample.</p>
     </section>
    </div>
    <div>
-    <section className="quiz"><h2>3. Check your interpretation</h2><p>Which species has a petal length range that does not overlap either of the other two?</p><div role="radiogroup" aria-label="Species with distinct petal length range">{species.map(name => <label className="quiz-option" key={name}><input type="radio" name="iris-check" checked={answer === name} onChange={() => {setAnswer(name); setChecked(false);}}/>{name}</label>)}</div><button className="button small" disabled={!answer} onClick={() => {setChecked(true);if(answer==='setosa')onQuiz();}}>Check interpretation</button>{checked && <p className="callout" role="status">{passed ? 'Correct. Setosa spans 1.0–1.9 cm. The other two species start at 3.0 cm and 4.5 cm.' : 'Switch to petal length and look for a gap between one species and both other ranges.'}</p>}</section>
+    <section className="quiz"><h2>3. Check your interpretation</h2><p>Which species has a petal length range that does not overlap either of the other two?</p><div role="radiogroup" aria-label="Species with distinct petal length range">{species.map(name => <label className="quiz-option" key={name}><input type="radio" name="iris-check" checked={answer === name} onChange={() => {setAnswer(name); setChecked(false);}}/>{name}</label>)}</div><button className="button small" disabled={!answer} onClick={() => {setChecked(true);if(answer===separatedSpecies)onQuiz();}}>Check interpretation</button>{checked && <p className="callout" role="status">{passed ? 'Correct. Setosa has a disjoint range. '+petalRanges.map(({name,min,max})=>name+' '+min.toFixed(1)+'–'+max.toFixed(1)+' cm').join('; ')+'.' : 'Switch to petal length and look for a gap between one species and both other ranges.'}</p>}</section>
     <section className="experiment"><h2>Try a classification rule</h2>
      <p>Predict setosa when a petal is at or below your cutoff. Adjust it using the 120 training rows, then lock it to reveal the errors on 30 separate rows.</p>
      <label className="slider-label" htmlFor="iris-cutoff">Petal length cutoff <strong>{cutoff.toFixed(1)} cm</strong></label>
@@ -77,7 +82,7 @@ export default function IrisProject({onQuiz,onExport}: {onQuiz:()=>void;onExport
       <div><small>Other flowers called setosa</small><strong>{falsePositives} / 80</strong><span>Training false positives</span></div>
       <div><small>Setosa flowers missed</small><strong>{falseNegatives} / 40</strong><span>Training false negatives</span></div>
      </div>
-     <p><button className="button small" disabled={lockedCutoff !== null} onClick={() => setLockedCutoff(cutoff)}>Lock cutoff and test</button></p>
+     <p><button className="button small" disabled={lockedCutoff !== null} onClick={() => {setLockedCutoff(cutoff);onAnalyze();}}>Lock cutoff and test</button></p>
      {testErrors && <p className="callout" role="status">At {lockedCutoff?.toFixed(1)} cm, the test set has {testErrors.falsePositives} false positives out of 20 and {testErrors.falseNegatives} false negatives out of 10. This is a teaching split. The chart above includes all 150 rows, so a cutoff informed by that chart is already influenced by the test data.</p>}
     </section>
     <section className="experiment"><h2>4. Write your finding</h2><label className="project-label" htmlFor="iris-finding">What did you find, and what can this sample tell you?</label><textarea id="iris-finding" rows={5} value={finding} onChange={e => {

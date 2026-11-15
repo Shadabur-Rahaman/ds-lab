@@ -1,5 +1,6 @@
+import {allProjectBits, isProject,legacyProjectBit,projectBits,projectReportKey,type ProjectId} from './projectCatalog';
 import {ActivitySummary,LearnerControls,Portfolio} from './LearnerPortfolio';
-import {applyDrafts,clearDrafts,mergeBackup,snapshot,type Backup} from './lib/learnerData';
+import {applyDrafts,clearDrafts,mergeBackup,snapshot,writeLearnerText,type Backup} from './lib/learnerData';
 import {syncOwnerKey,syncPauseKey,useLearnerSync} from './lib/useLearnerSync';
 import './learner.css';
 import {appPath, appUrl} from './lib/urls';
@@ -22,6 +23,7 @@ import {LessonContent} from './LessonContent';
 import {sqlLessons, type SqlLessonId} from './sqlLessons';
 import {lessonIds,mergeProgress,progressKey,readProgress,saveProgress,type Progress} from './lib/progress';
 import {supabase} from './lib/authClient';
+const ProjectStudio = lazy(() => import('./ProjectStudio').then(module=>({default:module.ProjectStudio})));
 const NeuralStudio = lazy(() => import('./NeuralStudio').then(module=>({default:module.NeuralStudio})));
 const NeuralProject = lazy(() => import('./NeuralTraining').then(module=>({default:module.NeuralProject})));
 const IrisProject = lazy(() => import('./IrisProject'));
@@ -105,7 +107,8 @@ export default function App(){const [path,setPath]=useState(appPath());const [mo
    if(!id)return;
    const current=mergeProgress(progressRef.current,readProgress());
    const entry=current[id];
-   persist({...current,[id]:{quiz:!!entry?.quiz,code:!!entry?.code,...entry,viewedAt:Date.now()}});
+   const studio=isProject(id)?entry?.studio??(entry?.quiz&&entry.code?legacyProjectBit:0):undefined;
+   persist({...current,[id]:{quiz:!!entry?.quiz,code:!!entry?.code,...entry,...(studio===undefined?{}:{studio}),viewedAt:Date.now()}});
  },[path]);
  function updateCheck(id: LearningId, kind: 'quiz' | 'code' | 'started') {
    const current = mergeProgress(progressRef.current, readProgress());
@@ -115,6 +118,17 @@ export default function App(){const [path,setPath]=useState(appPath());const [mo
    persist(next);
    return next;
  }
+ function markProject(id:ProjectId, bit:number, report?:string) {
+   const current=mergeProgress(progressRef.current,readProgress());
+   const entry=current[id];
+   const before=entry?.studio??(entry?.quiz&&entry.code?legacyProjectBit:0);
+   const studio=before|bit;
+   const reportSaved=report===undefined||writeLearnerText(projectReportKey(id),report);
+   if(studio!==before || report!==undefined) persist({...current,[id]:{
+     ...entry,studio,quiz:!!entry?.quiz || bit===projectBits.evaluate,code:!!entry?.code || bit===projectBits.present,updatedAt:Date.now(),
+   }});
+   if(!reportSaved)setSaveMessage('The report was downloaded. Browser storage could not keep a second copy.');
+ }
  const mark=(id:LessonId,kind:'quiz'|'code')=>updateCheck(id,kind);
  const quizItems = track.filter(item => item.course !== 'SQL');
  const quizCount=quizItems.filter(item=>progress[item.id]?.quiz).length;
@@ -123,6 +137,11 @@ export default function App(){const [path,setPath]=useState(appPath());const [mo
  const sqlCompleted = sqlLessons.filter(item => progress[item.id]?.code).length;
  const completed = learningItems.filter(item => lessonState(progress, item.id) === 'Completed').length;
  const nextLesson = resumeItem(progress);
+ const project=projects.find(item=>item.path===path);
+ const projectId=project?.id;
+ const studio=projectId?progress[projectId]?.studio:undefined;
+ const projectActions=projectId?{onAnalyze:()=>markProject(projectId,projectBits.analyze),onExport:(report:string)=>markProject(projectId,projectBits.present,report)}:undefined;
+ const projectComplete=studio!==undefined&&((studio&allProjectBits)===allProjectBits||!!(studio&legacyProjectBit));
  const lessonId = path.startsWith('/learn/') ? path.split('/')[2] : undefined;
  const lesson = lessons.find(item => item.id === lessonId);
  const sqlLesson = sqlLessons.find(item => item.id === lessonId);
@@ -211,19 +230,18 @@ export default function App(){const [path,setPath]=useState(appPath());const [mo
  </>}
  {deepLesson && <NeuralStudio key={deepLesson.id} lesson={deepLesson} onOpen={goLesson} progress={progress[deepLesson.id]}
    onQuiz={()=>markAnalysis(deepLesson.id,'quiz')} onCode={()=>markAnalysis(deepLesson.id,'code')}/>}
- {path==='/projects/neural-classification' && <NeuralProject passed={!!progress[neuralProjectId]?.quiz} exported={!!progress[neuralProjectId]?.code}
-   onQuiz={()=>markAnalysis(neuralProjectId,'quiz')} onExport={()=>markAnalysis(neuralProjectId,'code')}/>}
  {mlLesson && <MlStudio key={mlLesson.id} lesson={mlLesson} onOpen={goLesson} progress={progress[mlLesson.id]}
    onQuiz={() => markAnalysis(mlLesson.id, 'quiz')} onCode={() => markAnalysis(mlLesson.id, 'code')}/>}
- {path==='/projects/iris-classification' && <IrisClassification passed={!!progress[irisClassificationId]?.quiz} exported={!!progress[irisClassificationId]?.code}
-   onPass={() => markAnalysis(irisClassificationId, 'quiz')} onExport={() => markAnalysis(irisClassificationId, 'code')}/>}
  {analysisLesson && <AnalysisStudio key={analysisLesson.id} lesson={analysisLesson} onOpen={goLesson}
    progress={progress[analysisLesson.id]} onQuiz={() => markAnalysis(analysisLesson.id, 'quiz')}
    onCode={() => markAnalysis(analysisLesson.id, 'code')}/>}
  {isVisualization && <VisualizationLab passed={!!progress[chartLessonId]?.quiz} onPass={() => markAnalysis(chartLessonId, 'quiz')}/>}
- {path==='/projects/retail' && <RetailProject passed={!!progress[retailProjectId]?.quiz}
-   onPass={() => markAnalysis(retailProjectId, 'quiz')} onExport={() => markAnalysis(retailProjectId, 'code')}/>}
- {path==='/projects/iris'&&<IrisProject onQuiz={()=>updateCheck('iris-eda','quiz')} onExport={()=>updateCheck('iris-eda','code')}/>}
+ {projectId&&projectActions&&<ProjectStudio id={projectId} studio={studio} legacyComplete={!!((studio??0)&legacyProjectBit)} mark={bit=>markProject(projectId,bit)}>
+   {projectId===neuralProjectId&&<NeuralProject passed={!!progress[projectId]?.quiz} exported={!!progress[projectId]?.code} studioCompleted={projectComplete} onQuiz={()=>markProject(projectId,projectBits.evaluate)} {...projectActions}/>}
+   {projectId===irisClassificationId&&<IrisClassification passed={!!progress[projectId]?.quiz} exported={!!progress[projectId]?.code} studioCompleted={projectComplete} onPass={()=>markProject(projectId,projectBits.evaluate)} {...projectActions}/>}
+   {projectId===retailProjectId&&<RetailProject passed={!!progress[projectId]?.quiz} onPass={()=>markProject(projectId,projectBits.evaluate)} {...projectActions}/>}
+   {projectId==='iris-eda'&&<IrisProject onQuiz={()=>markProject(projectId,projectBits.evaluate)} {...projectActions}/>}
+ </ProjectStudio>}
  </Suspense></WorkspaceBoundary>
  {lessonId && learningItems.some(item => item.id === lessonId) && <LessonJourney id={lessonId as LearningId} progress={progress} onOpen={goLesson}/>}
  {!['/','/dashboard','/projects','/courses','/roadmap','/projects/iris','/projects/retail','/projects/iris-classification','/projects/neural-classification'].includes(path)&&!lesson&&!sqlLesson&&!analysisLesson&&!mlLesson&&!deepLesson&&!isVisualization&&<div className="empty-state"><h1>This page hasn’t been mapped yet.</h1><button className="button primary" onClick={()=>navigate('/')}>Back to your workspace</button></div>}

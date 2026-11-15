@@ -1,0 +1,26 @@
+.project-studio {display:grid;gap:1rem;min-width:0}
+.project-studio > * {min-width:0}
+.project-studio > .text-link {justify-self:start}
+.project-brief .project-question {font-size:1.1rem;font-weight:650}
+.project-facts {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.project-facts p {margin:.35rem 0 .75rem}
+.project-brief label,.project-form label {display:grid;gap:.35rem;min-width:0}
+.project-brief select,.project-profile select {max-width:100%;min-height:40px}
+.project-brief select {justify-self:start}
+.project-studio h2[id] {scroll-margin-top:4rem}
+.project-milestones ol {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem;list-style:none;padding:0}
+.project-milestones li {display:grid;gap:.35rem;border:1px solid var(--line);border-radius:.65rem;padding:.75rem;min-width:0}
+.project-milestones strong {display:flex;align-items:center;gap:.35rem}
+.project-form {display:flex;gap:.65rem;align-items:end;flex-wrap:wrap;margin:.65rem 0}
+.project-profile table caption {text-align:left;padding:.4rem}
+.project-profile td,.project-profile th {white-space:nowrap}
+.project-profile .table-wrap {max-width:100%;overflow:auto}
+.project-workbench {min-width:0;scroll-margin-top:4rem}
+@media(max-width:620px){
+  .project-facts {grid-template-columns:minmax(0,1fr);gap:.25rem}
+  .project-milestones ol {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .project-brief .section-heading {align-items:start;flex-wrap:wrap}
+}
+@media(max-width:365px){
+  .project-form {align-items:start;flex-direction:column}
+}

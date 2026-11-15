@@ -1,3 +1,5 @@
+import {downloadText} from './lib/downloadText';
+import type {ProjectActions} from './projectCatalog';
 import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
 import {useEffect, useState, type ReactNode} from 'react';
 import {DataTable, RetailExplorer} from './AnalysisStudio';
@@ -125,7 +127,7 @@ function Heatmap({rows}: {rows: CleanRow[]}) {
   </div>;
 }
 
-export function ChartLab({rows}: {rows: CleanRow[]}) {
+export function ChartLab({rows,onAnalyze}: {rows: CleanRow[];onAnalyze?:()=>void}) {
   const [chart, setChart] = useState<Chart>('Histogram');
   const [metric, setMetric] = useState<Metric>('revenue');
   const [secondary, setSecondary] = useState<Metric>('units');
@@ -137,11 +139,11 @@ export function ChartLab({rows}: {rows: CleanRow[]}) {
   return <section className="experiment analysis-panel">
     <h2>Chart workbench</h2>
     <div className="lab-picker" role="group" aria-label="Chart type">{chartTypes.map(kind =>
-      <button key={kind} aria-pressed={chart === kind} onClick={() => setChart(kind)}>{kind}</button>)}</div>
+      <button key={kind} aria-pressed={chart === kind} onClick={() => {if(kind!==chart&&(include ? rows.length : rows.some(row=>row.units<18)))onAnalyze?.();setChart(kind);}}>{kind}</button>)}</div>
     <div className="lab-actions analysis-chart-controls">
       {['Histogram', 'Box plot', 'Scatter plot'].includes(chart) && columns(chart === 'Scatter plot' ? 'X column' : 'Numeric column', metric, setMetric)}
       {chart === 'Scatter plot' && columns('Y column', secondary, setSecondary)}
-      <label><input type="checkbox" checked={include} onChange={event => setInclude(event.target.checked)}/> Include orders of 18+ units</label>
+      <label><input type="checkbox" checked={include} onChange={event => {setInclude(event.target.checked);if(event.target.checked ? rows.length : rows.some(row=>row.units<18))onAnalyze?.();}}/> Include orders of 18+ units</label>
     </div>
     {chart === 'Histogram' && <RangeControl label="Histogram bins" min={3} max={8} value={bins} onChange={setBins}/>}
     <p aria-live="polite">{visible.length} cleaned observations in view</p>
@@ -166,7 +168,7 @@ export function VisualizationLab({passed, onPass}: {passed: boolean; onPass: () 
 }
 
 const findingsKey = 'ds-lab:retail-findings';
-export function RetailProject({passed, onPass, onExport}: {passed: boolean; onPass: () => void; onExport: () => void}) {
+export function RetailProject({passed, onPass, onExport, onAnalyze}: {passed: boolean; onPass: () => void}&ProjectActions) {
   const {data, error} = useRetail();
   const [findings, setFindings] = useState(() => {try {return readLearnerText(findingsKey) ?? '';} catch {return '';}});
   const [storageError, setStorageError] = useState(false);
@@ -177,19 +179,18 @@ export function RetailProject({passed, onPass, onExport}: {passed: boolean; onPa
   const totals = groupRevenue(clean, 'category');
   const revenues = clean.map(row => row.revenue).sort((left, right) => left - right);
   function download() {
+    const monthly=groupRevenue(clean,'month');
     const report = ['# Retail Sales Data Cleaning & Exploratory Analysis', '',
       'Synthetic teaching data, January–March 2026. Each row is an order with quantity and unit price in rupees.', '',
       '## Cleaning audit', data!.rows.length + ' raw rows, ' + duplicates + ' exact duplicate removed, ' + excluded + ' additional exclusions, ' + clean.length + ' retained.',
       'Excluded rows with missing units or unit price or nonpositive units. Standardized categories and labeled blanks Unknown.', '',
       '## Revenue by category (₹)', ...totals.map(([name, total]) => '- ' + name + ': ' + total), '',
+      '## Revenue by month', ...monthly.map(([month,total])=>'- '+month+': '+total), '',
       '## Order revenue distribution', revenues.length
         ? 'Median ₹' + short(quantile(revenues, .5)) + ', range ₹' + short(revenues[0]) + '–₹' + short(revenues.at(-1)!) + '.'
         : 'No complete orders remained after cleaning.', '', '## Learner findings', findings.trim()].join('\n');
-    const url = URL.createObjectURL(new Blob([report], {type: 'text/markdown;charset=utf-8'}));
-    const link = document.createElement('a');
-    link.href = url; link.download = 'retail-analysis.md'; link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    onExport();
+    downloadText('retail-analysis.md',report,'text/markdown;charset=utf-8');
+    onExport(report);
   }
   return <div className="analysis-studio">
     <div className="page-heading"><h1>Retail Sales Data Cleaning & Exploratory Analysis</h1>
@@ -200,7 +201,7 @@ export function RetailProject({passed, onPass, onExport}: {passed: boolean; onPa
       <li>Group cleaned revenue by category. Use the histogram or box plot to compare the distribution with and without the large order.</li>
       <li>Document a calculated finding and a limitation, then export your report.</li>
     </ol>
-    <RetailExplorer rows={data.rows}/><ChartLab rows={clean}/>
+    <RetailExplorer rows={data.rows}/><ChartLab rows={clean} onAnalyze={onAnalyze}/>
     <PracticeQuestion prompt="Why exclude an order with missing quantity or price from revenue totals?"
       options={['Its revenue cannot be calculated reliably.', 'The order always has zero revenue.', 'It is necessarily a duplicate.']}
       answer={0} explanation="A missing factor makes order revenue unknown. Document the exclusion and avoid treating missing amounts as zero."

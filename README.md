@@ -23,6 +23,12 @@ The guided Iris EDA project at `/projects/iris` uses the 150 observations in UCI
 - `src/components.tsx` contains visual experiments, quizzes and the code workspace. `public/python-worker.js` adapts the existing Python Lab Pyodide worker with package loading for pandas. Python runs on the learner's device and requires the CDN on first use.
 - `src/lib/progress.ts` preserves the original progress key and records visits separately from graded completion. `src/lib/learnerData.ts` reads existing draft and notes keys and adds per-draft revision metadata. The dashboard can export and merge an allowlisted JSON backup. Clearing one lesson clears its progress only. Clearing local learning data leaves authentication, preferences, and account data intact.
 
+## Project Studio
+
+V11 projects already had working datasets, interactive analyses, domain checks and report downloads. The shared Studio adds six evidence-based milestones, a dataset preview and profiler, and graded Python exercises around those workbenches. Prior project completions and notes are preserved. New completions require all six milestones, and the original project reports can still be downloaded while work is in progress.
+
+Project reports are saved as local snapshots. Once all six milestones are verified, the portfolio can export Markdown or JSON with the last report's actual results and learner findings. Guided and independent modes use the same checks and saved code, with fewer hints in independent mode. Textual interpretations are reviewed using the project criteria and learner judgment.
+
 ## Optional account sync
 
 The existing Pages workflow does not inject Supabase settings. Guest progress, notes and drafts work without them. For an authorized Supabase deployment, apply `001_progress.sql` and `002_learner_sync.sql` and supply `VITE_SUPABASE_URL` plus `VITE_SUPABASE_PUBLISHABLE_KEY` (or the legacy public `VITE_SUPABASE_ANON_KEY`) at build time. Use a public browser key and configure the existing OTP redirect to the deployed dashboard. Server keys belong outside Vite environment variables.

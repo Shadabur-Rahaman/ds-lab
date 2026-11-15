@@ -90,7 +90,8 @@ test('neural project trains real weights, exports metrics, and retains completio
   await page.getByRole('radio',{name:'Held-out rows'}).check();
   await page.getByRole('button',{name:'Check understanding'}).click();
   await page.reload();
-  await expect(page.getByText('Project complete.',{exact:true})).toBeVisible();
+  await expect(page.getByText(/Report and interpretation saved/)).toBeVisible();
+  await expect(page.getByRole('button',{name:'Download saved report'})).toBeVisible();
   await expect(page.getByRole('textbox',{name:'Conclusion'})).toHaveValue(/held-out errors/);
 });
 

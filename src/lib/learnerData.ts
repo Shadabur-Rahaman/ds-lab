@@ -1,4 +1,5 @@
-import {lessonIds, mergeProgress, parseProgress, readProgress, type Progress} from './progress';
+import {lessonIds, mergeProgress, parseProgress, readProgress, validStudio, type Progress} from './progress';
+import {projectCatalog,projectDraftId,projectReportKey,projectModeKey,isProject,type ProjectId} from '../projectCatalog';
 import {sqlLessons} from '../sqlLessons';
 
 export const projectNotes = {
@@ -11,6 +12,11 @@ export const projectNotes = {
 const sqlIds = new Set<string>(sqlLessons.map(item=>item.id));
 const keys = new Set([...Object.values(projectNotes), ...lessonIds.filter(id=>!Object.hasOwn(projectNotes,id))
   .map(id=>sqlIds.has(id) ? 'ds-lab:sql-draft:'+id : 'learning-ecosystem:ds:draft:'+id)]);
+for(const id of Object.keys(projectCatalog) as ProjectId[]) {
+  keys.add('learning-ecosystem:ds:draft:'+projectDraftId(id));
+  keys.add(projectReportKey(id));
+  keys.add(projectModeKey(id));
+}
 const versionKey = (key:string) => 'ds-lab:learner-version:'+key;
 export const learnerEvent = 'ds-lab:learning-changed';
 const mergedEvent = 'ds-lab:learner-work-merged';
@@ -18,8 +24,10 @@ export function watchLearnerText(key:string, update:(value:string)=>void) {
   const refresh=()=>{const value=readLearnerText(key);if(value!==null)update(value);};
   const storage=(event:StorageEvent)=>{if(event.key===versionKey(key)||event.key===key)refresh();};
   window.addEventListener(mergedEvent,refresh);
+  const changed=(event:Event)=>{if((event as CustomEvent<string>).detail===key)refresh();};
+  window.addEventListener(learnerEvent,changed);
   window.addEventListener('storage',storage);
-  return ()=>{window.removeEventListener(mergedEvent,refresh);window.removeEventListener('storage',storage);};
+  return ()=>{window.removeEventListener(mergedEvent,refresh);window.removeEventListener(learnerEvent,changed);window.removeEventListener('storage',storage);};
 }
 export type Draft = {text:string; updatedAt:number};
 export type Backup = {format:'ds-lab-learner-v1'; progress:Progress; drafts:Record<string,Draft>};
@@ -78,7 +86,7 @@ export function writeLearnerText(key:string,text:string) {
     localStorage.setItem(versionKey(key),JSON.stringify(record));
     delete memory[key];
   } catch {ok=false;}
-  window.dispatchEvent(new Event(learnerEvent));
+  window.dispatchEvent(new CustomEvent(learnerEvent,{detail:key}));
   return ok;
 }
 
@@ -92,6 +100,7 @@ export function parseBackup(value:unknown):Backup {
   for (const [id,entry] of Object.entries(value.progress)) {
     if (!lessonIds.includes(id as typeof lessonIds[number]) || !object(entry) ||
         ['quiz','code','started'].some(key=>entry[key]!==undefined && typeof entry[key]!=='boolean') ||
+        (entry.studio!==undefined && (!isProject(id)||!validStudio(entry.studio))) ||
         ['updatedAt','viewedAt'].some(key=>entry[key]!==undefined && !validTime(entry[key]))) throw new Error('Backup contains invalid progress.');
   }
   return {format:value.format,progress:parseProgress(value.progress),drafts:parseDrafts(value.drafts,true)};

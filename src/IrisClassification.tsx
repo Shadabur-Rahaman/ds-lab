@@ -1,4 +1,6 @@
 import {readLearnerText, watchLearnerText, writeLearnerText} from './lib/learnerData';
+import {downloadText} from './lib/downloadText';
+import type {ProjectActions} from './projectCatalog';
 import {useEffect, useState} from 'react';
 import {Download} from 'lucide-react';
 import {DataTable} from './AnalysisStudio';
@@ -9,9 +11,9 @@ import {appUrl} from './lib/urls';
 const findingKey = 'ds-lab:iris-classification-conclusion';
 const pct = (value: number) => (value * 100).toFixed(1) + '%';
 
-export function IrisClassification({passed, exported, onPass, onExport}: {
-  passed: boolean; exported: boolean; onPass: () => void; onExport: () => void;
-}) {
+export function IrisClassification({passed, exported, studioCompleted, onPass, onExport, onAnalyze}: {
+  passed: boolean; exported: boolean; studioCompleted:boolean; onPass: () => void;
+}&ProjectActions) {
   const [samples, setSamples] = useState<Sample[]>();
   const [error, setError] = useState('');
   const [columns, setColumns] = useState([2,3]);
@@ -60,13 +62,9 @@ export function IrisClassification({passed, exported, onPass, onExport}: {
       '| --- | ' + labels.map(()=>'---').join(' | ') + ' |',
       ...model.matrix.map((row,index) => '| ' + labels[index] + ' | ' + row.join(' | ') + ' |'), '',
       '## Learner conclusion', conclusion.trim()];
-    const url = URL.createObjectURL(new Blob([lines.join('\n')], {type:'text/markdown;charset=utf-8'}));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'iris-classification-report.md';
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-    onExport();
+    const report=lines.join('\n');
+    downloadText('iris-classification-report.md',report,'text/markdown;charset=utf-8');
+    onExport(report);
   }
   return <div className="analysis-studio ml-studio">
     <div className="page-heading"><h1>Iris Classification — From Dataset to Prediction</h1>
@@ -94,9 +92,9 @@ export function IrisClassification({passed, exported, onPass, onExport}: {
           <RangeControl label="Test share (%)" min={20} max={40} step={10} value={share} onChange={setShare}/>
           <RangeControl label="Iris neighbors (k)" min={1} max={15} step={2} value={k} onChange={setK}/>
         </div>
-        <button className="button primary" onClick={() => setTrained({
+        <button className="button primary" onClick={() => {setTrained({
           model: fitIris(samples,columns,seed,share/100,k,binary), columns, seed, share, k, binary,
-        })}>Train classifier</button>
+        });onAnalyze();}}>Train classifier</button>
         {stale && <p role="status">Settings changed. Train again to evaluate these settings. The results below are from the previous fit.</p>}
       </section>
       <section className="experiment analysis-panel">
@@ -128,9 +126,9 @@ export function IrisClassification({passed, exported, onPass, onExport}: {
         }}/>
         {storageError && <p role="status">This browser could not save your conclusion. Export a copy before leaving.</p>}
         <button className="button primary" disabled={!trained || stale || !conclusion.trim()} onClick={download}><Download size={16}/> Export Iris report</button>
-        <p className="callout" role="status">{passed && exported ? 'Project complete.' :
+        <p className="callout" role="status">{studioCompleted ? 'Project complete.' : passed && exported ? 'Report and interpretation saved. See the Studio checklist for remaining milestones.' :
           passed ? 'Knowledge check complete. Export your report to finish the project.' :
-          exported ? 'Report exported. Pass the knowledge check to finish the project.' :
+          exported ? 'Report exported. Complete the remaining milestones in the Studio checklist.' :
           'Pass the knowledge check and export your report to complete this project.'}</p>
       </section>
     </>}
