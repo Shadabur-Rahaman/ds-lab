@@ -10,7 +10,7 @@ type Grid = {columns: string[]; rows: (string | number | null | Uint8Array)[][];
 type Reply = {id: number; result?: Grid; expected?: Grid; passed?: boolean; error?: string};
 type Action = 'initialize' | 'run' | 'check' | 'expected' | 'reset';
 type QueryExercise = {
-  id: SqlLesson['id'] | 'customer-purchases';
+  id: SqlLesson['id'] | 'customer-purchases' | `assessment-${string}`;
   title: string;
   concept: string;
   analogy: string;
@@ -47,13 +47,14 @@ function ResultGrid({result, title}: {result: Grid; title: string}) {
   </>;
 }
 
-export function SqlStudio({lesson, completed, onSelect, onStart, onPass, project}: {
+export function SqlStudio({lesson, completed, onSelect, onStart, onPass, project, onGrade}: {
   lesson: QueryExercise;
   project?: {seed:string; independent:boolean};
   completed: (id: SqlLesson['id']) => boolean;
   onSelect: (id: SqlLesson['id']) => void;
   onStart: () => void;
   onPass: () => void;
+  onGrade?: (passed:boolean,detail?:string) => void;
 }) {
   const draftKey = 'ds-lab:sql-draft:' + lesson.id;
   const [query, setQuery] = useState<string>(() => {
@@ -66,8 +67,8 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass, project
   const [result, setResult] = useState<Grid>();
   const [expected, setExpected] = useState<Grid>();
   const [preview, setPreview] = useState<Grid>();
-  const availableTables:readonly string[]=project?['PurchaseLines']:tables;
-  const [table, setTable] = useState(project?'PurchaseLines':'Customers');
+  const availableTables:readonly string[]=project?.seed?['PurchaseLines']:tables;
+  const [table, setTable] = useState(project?.seed?'PurchaseLines':'Customers');
   const [schema, setSchema] = useState(false);
   const [message, setMessage] = useState('Loading SQLite…');
   const [error, setError] = useState('');
@@ -132,6 +133,7 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass, project
         setResult(data.result);
         if (action === 'check') {
           setMessage(data.passed ? (project?'SQL challenge passed.':'Challenge passed. Lesson complete.') : 'The rows differ from the expected result. Compare the columns, values, and any requested sort order.');
+          onGrade?.(data.passed===true,data.passed?undefined:'Your query returned '+(data.result?.rows.length??0)+' rows; the reference returned '+(data.expected?.rows.length??0)+'. Compare columns, values and any requested sort order.');
           if (data.passed) onPass();
           else onStart();
         } else {
@@ -207,7 +209,7 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass, project
             onKeyDown={event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); if (query.trim()) request('run', query); } }}/>
           <div className="lab-actions">
             <button className="button primary" disabled={!!busy || !query.trim()} onClick={() => request('run', query)}><Play size={15}/> Run query</button>
-            <button className="button" disabled={!!busy || !query.trim()} onClick={() => request('check', query)}>Check answer</button>
+            <button className="button" disabled={!!busy || !query.trim()} onClick={() => request('check', query)}>{onGrade?'Submit SQL solution':'Check answer'}</button>
             <button className="button" disabled={!!busy} onClick={() => {if(query !== lesson.starter) setResetUndo(query); updateQuery(lesson.starter);}}><RotateCcw size={15}/> Reset query</button>
             {resetUndo !== undefined && <button className="button" onClick={() => {updateQuery(resetUndo);setResetUndo(undefined);}}>Undo reset</button>}
             {busy && <button className="button" onClick={stopQuery}>Stop query</button>}
@@ -220,9 +222,9 @@ export function SqlStudio({lesson, completed, onSelect, onStart, onPass, project
         <section className="experiment sql-panel" aria-labelledby="results-title">
           <h2 id="results-title">Query results</h2>
           {result ? <ResultGrid title="Query result rows" result={result}/> : <p>Run a query to see its results.</p>}
-          <button className="text-link" disabled={!!busy} onClick={() => expected ? setExpected(undefined) : request('expected')}>{expected ? 'Hide expected result' : 'Show expected result'}</button>
+          {!onGrade&&<button className="text-link" disabled={!!busy} onClick={() => expected ? setExpected(undefined) : request('expected')}>{expected ? 'Hide expected result' : 'Show expected result'}</button>}
           {expected && <ResultGrid title="Expected result rows" result={expected}/>}
-          {next && lesson.id!=='customer-purchases' && completed(lesson.id) && <button className="button" onClick={() => onSelect(next.id)}>Next lesson <ArrowRight size={15}/></button>}
+          {next && !project && completed(lesson.id as SqlLesson['id']) && <button className="button" onClick={() => onSelect(next.id)}>Next lesson <ArrowRight size={15}/></button>}
         </section>
       </div>
     </div>

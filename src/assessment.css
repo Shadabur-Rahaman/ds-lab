@@ -1,0 +1,15 @@
+.assessment-studio{display:grid;gap:1rem;min-width:0}
+.assessment-studio > *{min-width:0}
+.assessment-filters,.assessment-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem}
+.assessment-filters label{display:grid;gap:.4rem;min-width:0}
+.assessment-filters select{width:100%;min-height:44px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:.5rem;padding:.4rem}
+.assessment-actions,.assessment-questions{margin-top:1rem}
+.assessment-questions button{min-width:44px;min-height:44px}
+.assessment-choices{min-width:0;padding:0;border:0}
+.assessment-topic-list{display:grid;gap:.6rem;list-style:none;padding:0}
+.assessment-topic-list li{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.assessment-topic-list button{text-align:left}
+.assessment-metrics strong{display:block;font-size:1.45rem;color:var(--accent)}
+.assessment-performance,.assessment-studio progress{width:100%}
+.assessment-studio .sql-studio{min-width:0}
+@media(max-width:600px){.assessment-filters{grid-template-columns:minmax(0,1fr)}}

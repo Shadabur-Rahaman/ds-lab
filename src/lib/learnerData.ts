@@ -1,5 +1,6 @@
 import {lessonIds, mergeProgress, parseProgress, readProgress, validStudio, type Progress} from './progress';
 import {projectCatalog,projectDraftId,projectReportKey,projectModeKey,isProject,type ProjectId} from '../projectCatalog';
+import {assessmentCourses,assessmentItems,attemptKey,codingDraft} from '../assessmentCatalog';
 import {sqlLessons} from '../sqlLessons';
 
 export const projectNotes = {
@@ -15,6 +16,8 @@ const sqlIds = new Set<string>(sqlLessons.map(item=>item.id));
 const keys = new Set([...Object.values(projectNotes), ...lessonIds.filter(id=>!Object.hasOwn(projectNotes,id))
   .map(id=>sqlIds.has(id) ? 'ds-lab:sql-draft:'+id : 'learning-ecosystem:ds:draft:'+id)]);
 keys.add('ds-lab:sql-draft:customer-purchases');
+for(const course of assessmentCourses)keys.add(attemptKey(course));
+for(const item of assessmentItems)if(item.kind!=='choice')keys.add((item.kind==='sql'?'ds-lab:sql-draft:':'learning-ecosystem:ds:draft:')+codingDraft(item));
 for(const id of Object.keys(projectCatalog) as ProjectId[]) {
   keys.add('learning-ecosystem:ds:draft:'+projectDraftId(id));
   keys.add(projectReportKey(id));

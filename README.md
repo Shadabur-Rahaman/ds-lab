@@ -31,6 +31,14 @@ Project reports are saved as local snapshots. Once all six milestones are verifi
 
 Customer Purchase Analytics uses a shared synthetic line-item ledger in SQLite and Pandas. Its Implement milestone requires both checks. Student Performance Prediction compares one-feature least squares to a training-mean baseline on the same held-out observations. The downloadable student CSV identifies a fixed split for the Python exercise. The interactive model allows a different seed or pre-exam feature.
 
+## Assessment Studio
+
+Use `/assessments/` for topic practice or mixed course-end assessments. Python submissions run in Pyodide and SQL submissions are compared against reference result rows in a fresh SQLite database. Running code in the editor is separate from submitting it for a grade.
+
+Attempts, submitted answers and drafts use the existing browser learner store and can be included in a progress backup. Topic performance uses the latest result per question, so retries do not inflate the number of distinct questions attempted. These are educational exercises with browser-side grading.
+
+Each course keeps up to 24 recent attempts. The dashboard compares completed attempts only when they use the same question set.
+
 ## Release checkout
 
 Use the canonical checkout for one release at a time. Before queuing a manifest, pause other development sessions that write to that checkout. For files shared by a release and unfinished work, preserve verified copies outside the checkout and isolate the release hunks. Wait for the worker's terminal result and a clear queue before restoring parked work. The worker rechecks the canonical files before publishing, even after its isolated tests pass. See [release handoff](scripts/RELEASE.md).
