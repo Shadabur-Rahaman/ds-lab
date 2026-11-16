@@ -1,5 +1,6 @@
 import {lessons, type LearningId} from './data';
 import {analysisLessons, chartLessonId, retailProjectId} from './analysisLessons';
+import {advancedLessons} from './advancedLessons';
 import {irisClassificationId, mlLessons} from './mlLessons';
 import {deepLessons, neuralProjectId} from './deepLessons';
 import {sqlLessons} from './sqlLessons';
@@ -24,7 +25,7 @@ export const stages: {title: string; outcome: string; items: LearningItem[]}[] =
     {id: chartLessonId, title: 'Data Visualization Lab', description: 'Choose a chart and interpret the results.',
       course: 'Data Visualization', color: 'pink', icon: 'chart'},
   ]},
-  {title: 'Machine Learning', outcome: 'Train simple models and evaluate them on held-out data.', items: mlLessons.map(lesson => ({
+  {title: 'Machine Learning', outcome: 'Train simple models and evaluate them on held-out data. Compare ensembles and explore unsupervised learning.', items: [...mlLessons,...advancedLessons].map(lesson => ({
     id: lesson.id, title: lesson.title, description: lesson.task, course: 'Machine Learning', color: 'purple', icon: 'brain',
   }))},
   {title:'Deep Learning', outcome:'Trace, train, and evaluate a neural network.', items:deepLessons.map(item=>({
@@ -40,6 +41,7 @@ export const projects = [
   {id:neuralProjectId,title:'Neural Network Classification',path:'/projects/neural-classification',preparation:'Deep Learning'},
   {id:'customer-purchases',title:'Customer Purchase Analytics',path:'/projects/customer-purchases',preparation:'SQL and Pandas'},
   {id:'student-performance',title:'Student Performance Prediction',path:'/projects/student-performance',preparation:'Machine Learning'},
+  {id:'compare-models',title:'Compare Machine Learning Models on Iris',path:'/projects/compare-models',preparation:'Decision Trees and Random Forests'},
 ] as const;
 
 export const learningItems: LearningItem[] = [...track,

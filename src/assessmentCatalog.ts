@@ -1,3 +1,5 @@
+import {advancedLessons, advancedExamples} from './advancedLessons';
+
 export const assessmentCourses = [
   'Foundations','Statistics','SQL','NumPy','Pandas','Visualization','Machine Learning','Deep Learning',
 ] as const;
@@ -45,6 +47,10 @@ export const assessmentItems:AssessmentItem[] = [
   q('d-relu','Deep Learning','Activations','Introductory','What does ReLU return for inputs -2, 0 and 3?',['-2, 0, 3','0, 0, 3','0, 1, 1'],1,'ReLU computes max(0, x) independently for each input.','Evaluate a common activation.'),
   q('d-grad','Deep Learning','Optimization','Applied','A weight is 3, its loss gradient is 4, and the learning rate is 0.1. What is one gradient-descent update?',['2.6','3.4','0.4'],0,'Subtract learning rate × gradient from the original weight: 3 − 0.1 × 4.','Apply a one-parameter gradient-descent update.'),
   py('d-neuron','Deep Learning','Activations','Define neuron(inputs, weights, bias) to compute ReLU of the weighted sum plus bias. Inputs and weights have equal length.','def neuron(inputs, weights, bias):\n    return 0\n','Form the dot product with zip, add the bias once, then apply max(0, value).','assert neuron([1,2],[3,4],-1) == 10\nassert neuron([2],[-3],1) == 0\nassert neuron([0,0],[2,4],3) == 3','[1, 2], [3, 4], bias -1 → 10','The affine transformation combines inputs and bias before activation.','Implement a scalar neuron forward pass.'),
+  ...advancedLessons.flatMap(({id,title,quiz:[prompt,options,answer,explanation],task,starter,hint,tests,summary}) => [
+    q(id+'-quiz','Machine Learning',title,'Applied',prompt,[...options],answer,explanation,summary),
+    py(id+'-code','Machine Learning',title,task,starter,hint,tests,advancedExamples[id],summary,task),
+  ]),
 ];
 export const attemptKey = (course:Course) => 'ds-lab:assessment:'+course;
 export const codingDraft = (item:AssessmentItem) => 'assessment-'+item.id;

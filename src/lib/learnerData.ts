@@ -1,3 +1,4 @@
+import {settingsKey} from './modelComparison';
 import {lessonIds, mergeProgress, parseProgress, readProgress, validStudio, type Progress} from './progress';
 import {projectCatalog,projectDraftId,projectReportKey,projectModeKey,isProject,type ProjectId} from '../projectCatalog';
 import {assessmentCourses,assessmentItems,attemptKey,codingDraft} from '../assessmentCatalog';
@@ -10,11 +11,13 @@ export const projectNotes = {
   'neural-classification':'ds-lab:neural-report',
   'customer-purchases':'ds-lab:purchase-findings',
   'student-performance':'ds-lab:student-findings',
+  'compare-models':'ds-lab:compare-models:findings',
 } as const;
 
 const sqlIds = new Set<string>(sqlLessons.map(item=>item.id));
 const keys = new Set([...Object.values(projectNotes), ...lessonIds.filter(id=>!Object.hasOwn(projectNotes,id))
   .map(id=>sqlIds.has(id) ? 'ds-lab:sql-draft:'+id : 'learning-ecosystem:ds:draft:'+id)]);
+keys.add(settingsKey);
 keys.add('ds-lab:sql-draft:customer-purchases');
 for(const course of assessmentCourses)keys.add(attemptKey(course));
 for(const item of assessmentItems)if(item.kind!=='choice')keys.add((item.kind==='sql'?'ds-lab:sql-draft:':'learning-ecosystem:ds:draft:')+codingDraft(item));

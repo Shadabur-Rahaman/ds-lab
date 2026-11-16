@@ -1,0 +1,73 @@
+export const advancedLessons = [
+  {
+    id: 'ml-tree', title: 'Decision Trees',
+    task: 'Compute the Gini impurity of a list of class labels.',
+    concept: 'At each node a tree asks whether a feature is at or below a threshold. Classification trees predict the most common label in a leaf and use Gini or entropy to measure class mixing. Regression trees predict a leaf mean and can split to reduce squared error. Maximum depth limits how many decisions a path can make.',
+    example: 'A garden sensor can split plants by soil moisture to predict whether they need watering. Compare the parent impurity with the child impurities weighted by their sample counts.',
+    mistake: 'A deep tree can memorize noise. Compare depths on validation data before choosing one.',
+    hint: 'Har split ke baad dono groups ka weighted impurity dekho.',
+    summary: 'A useful split reduces weighted impurity. The kind of target determines the leaf prediction.',
+    starter: 'def gini(labels):\n    # Compute class proportions and subtract their squared sum from 1.\n    pass\n',
+    tests: 'assert abs(gini([0, 0, 1, 1]) - .5) < 1e-9\nassert gini([2, 2, 2]) == 0\nassert abs(gini([1, 2, 2, 2]) - .375) < 1e-9',
+    quiz: ['Why are child impurities weighted by their sample counts?', ['Both branches always have the same size', 'Each observation should contribute equally', 'Impurity measures tree depth'], 1, 'A small child must contribute less to the remaining impurity than a large child.'],
+  },
+  {
+    id: 'ml-forest', title: 'Random Forests',
+    task: 'Return the majority label from a list of tree predictions. Break ties using the smaller label.',
+    concept: 'A forest fits trees on bootstrap samples drawn with replacement. At each node it considers a random subset of features. Diverse trees can reduce variance when aggregated, and each row can be evaluated with trees that left it out of their bootstrap sample.',
+    example: 'Three independent tree votes for class 0 and two for class 1 produce a class 0 prediction. Changing the sample or available features can change an individual vote.',
+    mistake: 'A forest can lose to a single tree. Check validation performance and report how many rows received out-of-bag votes.',
+    hint: 'Alag samples, alag trees, phir majority vote.',
+    summary: 'Bagging and feature randomness diversify trees. Out-of-bag evaluation uses only eligible votes for each row.',
+    starter: 'def forest_vote(labels):\n    # Count votes, then apply the tie rule.\n    pass\n',
+    tests: 'assert forest_vote([1, 0, 1]) == 1\nassert forest_vote([2, 1, 2, 1]) == 1\nassert forest_vote([0, 2, 2, 0, 0]) == 0',
+    quiz: ['Which trees may provide an out-of-bag prediction for a row?', ['Trees with a matching leaf label', 'Every tree in the forest', 'Trees whose bootstrap sample omitted the row'], 2, 'Only trees that did not train on the row contribute to its out-of-bag prediction.'],
+  },
+  {
+    id: 'ml-boosting', title: 'Gradient Boosting',
+    task: 'Apply one squared-error boosting update to a prediction using the given fitted residual and learning rate.',
+    concept: 'With squared error, this model starts at the training mean. A shallow regression tree predicts residuals, which are the negative gradients of half the squared error. Add a fraction of its prediction, recompute residuals, and repeat.',
+    example: 'If a model predicts 6 and a stump predicts a residual of 4, a learning rate of 0.25 raises the estimate to 7. A negative residual estimate lowers it.',
+    mistake: 'More estimators can reduce training loss while increasing validation loss. Watch both curves and keep validation rows out of every fit.',
+    hint: 'Har learner bachi hui galti ka thoda hissa theek karta hai.',
+    summary: 'Each weak learner follows the current loss gradient. Learning rate and estimator count govern the size and number of updates.',
+    starter: 'def update(prediction, fitted_residual, rate):\n    # Add the scaled residual estimate.\n    pass\n',
+    tests: 'assert update(6, 4, .25) == 7\nassert update(8, -6, .5) == 5\nassert update(3, 10, 0) == 3',
+    quiz: ['What does the next stump fit in this squared-error experiment?', ['Current training residuals', 'Validation targets', 'The previous stump’s feature values'], 0, 'Retraining on current residuals corrects the ensemble in the direction that reduces squared error.'],
+  },
+  {
+    id: 'ml-clustering', title: 'K-means Clustering',
+    task: 'Return the index of the closest centroid by squared Euclidean distance. Use the lowest index for ties.',
+    concept: 'K-means alternates two steps: assign each point to its closest centroid and update each centroid to the mean of its assigned points. Within-cluster sum of squares (WCSS) sums each point’s squared distance to its assigned centroid.',
+    example: 'Segment purchasing patterns by frequency and spend. Try several seeds for a chosen k, then compare WCSS and whether the resulting groups are useful.',
+    mistake: 'Larger k tends to allow lower WCSS. This alone does not identify a useful number of clusters, and cluster numbers are arbitrary rather than class labels.',
+    hint: 'Pehle closest center, phir har group ka mean.',
+    summary: 'Centroids and memberships are learned from feature geometry. Scaling, k and initialization affect the solution.',
+    starter: 'def closest(point, centers):\n    # Find the smallest squared distance.\n    pass\n',
+    tests: 'assert closest((1, 2), [(0, 0), (1, 1)]) == 1\nassert closest((0, 0), [(-1, 0), (1, 0)]) == 0\nassert closest((9, 1), [(0, 0), (10, 10), (10, 0)]) == 2',
+    quiz: ['Why can two seeds produce different clusters?', ['The dataset gains new labels', 'The initial centers can lead to different local minima', 'WCSS changes its definition'], 1, 'The assignment and update steps improve the current solution, which depends on its starting centers.'],
+  },
+  {
+    id: 'ml-pca', title: 'Principal Component Analysis',
+    task: 'Project a centered 2D point onto a unit-length component and return its signed score.',
+    concept: 'PCA centers data, optionally scales each feature to unit standard deviation, and finds orthogonal axes from the covariance matrix. The first component captures the greatest variance. Projecting onto it keeps the signed coordinate on that axis and discards variation perpendicular to it.',
+    example: 'Petal length and petal width may vary together. Inspect whether one component can summarize that variation, then change a point to see the effect on the direction.',
+    mistake: 'A large unit of measurement can dominate unscaled PCA. Equal eigenvalues make the leading direction non-unique, and explained variance is undefined when all points coincide.',
+    hint: 'Data ko center karo, phir maximum spread wali direction dekho.',
+    summary: 'The explained variance ratio quantifies variance kept. It does not tell you whether the discarded variation matters for a particular prediction.',
+    starter: 'def project(point, component):\n    # Compute the dot product.\n    pass\n',
+    tests: 'assert project((3, 4), (0, 1)) == 4\nassert project((-2, 8), (1, 0)) == -2\nassert abs(project((2, 4), (.6, .8)) - 4.4) < 1e-9',
+    quiz: ['If PC1 retains 80% of total variance, what does a PC1-only projection discard?', ['20% of sample rows', '80% of covariance values', '20% of total variance'], 2, 'All rows remain. Dropping the second component loses the variance along that direction.'],
+  },
+] as const;
+
+export const advancedExamples: Record<AdvancedLessonId, string> = {
+  'ml-tree': 'labels = [0, 0, 1, 1]\nproportions = [labels.count(label) / len(labels) for label in set(labels)]\nprint(1 - sum(p**2 for p in proportions))',
+  'ml-forest': 'from collections import Counter\nvotes = Counter([1, 0, 1, 0, 1])\nprint(votes)\nprint(min(votes, key=lambda label: (-votes[label], label)))',
+  'ml-boosting': 'prediction = 6\nresidual = 4\nlearning_rate = 0.25\nprint(prediction + learning_rate * residual)',
+  'ml-clustering': 'x, y = (1, 2)\ncenters = [(0, 0), (1, 1)]\ndistances = [(x - a)**2 + (y - b)**2 for a, b in centers]\nprint(distances)\nprint(distances.index(min(distances)))',
+  'ml-pca': 'x, y = (3, 4)\ncomponent = (0, 1)\nprint(x * component[0] + y * component[1])',
+};
+
+export type AdvancedLesson = typeof advancedLessons[number];
+export type AdvancedLessonId = AdvancedLesson['id'];

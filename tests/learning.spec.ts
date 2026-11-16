@@ -107,7 +107,7 @@ test.describe('real Pyodide', () => {
  });
 
  test('grades the foundations and statistics challenges', async ({ page }) => {
-  test.setTimeout(210_000);
+  test.setTimeout(310_000);
   const editor = page.getByRole('textbox', { name: 'Python code', exact: true });
   const check = page.getByRole('button', { name: 'Check answer', exact: true });
   const status = page.locator('.console').getByRole('status');
@@ -125,6 +125,18 @@ test.describe('real Pyodide', () => {
   await editor.fill('from statistics import median\norders = [20, 25, 30, 35, 200]\ntypical_order = median(orders)\nprint(typical_order)');
   await checkAnswer('Challenge passed \u2014 nice work!');
   await expect(page.getByLabel('Python output')).toHaveText('30');
+
+  await page.goto('./learn/ml-tree/');
+  await page.getByRole('button',{name:'Load example'}).click();
+  await page.getByRole('button',{name:'Run code',exact:true}).click();
+  await expect(page.getByLabel('Python output')).toHaveText('0.5',{timeout:95_000});
+  await editor.fill('def gini(labels):\n    return 1 - sum((labels.count(v) / len(labels))**2 for v in set(labels))');
+  await checkAnswer('Challenge passed \u2014 nice work!');
+  await page.getByRole('radio',{name:'Each observation should contribute equally'}).check();
+  await page.getByRole('button',{name:'Check understanding'}).click();
+  await page.reload();
+  await expect(page.getByText('Lesson complete.',{exact:true})).toBeVisible();
+  await expect(editor).toHaveValue(/def gini/);
  });
 
  test('executes pandas and grades the cleaning challenge', async ({ page }) => {

@@ -2,6 +2,7 @@ import iris from '../public/datasets/iris.csv?raw';
 import retail from '../public/datasets/retail-sales.csv?raw';
 import {neuralDataset} from './lib/neural';
 import {purchaseCsv,purchaseSummary,studentCsv,studentExperiment,studentDefaultSeed} from './lib/capstoneData';
+import {comparisonTrainingCsv, irisComparisonSplit} from './lib/modelComparison';
 import type {ProjectId} from './projectCatalog';
 
 const neural = ['x1,x2,label', ...neuralDataset(17,.3,0).rows.map(row=>[...row.x,row.y].join(','))].join('\n');
@@ -17,6 +18,20 @@ with open("${name}", newline="") as file:
 const purchaseExpected=purchaseSummary();
 const studentExpected=studentExperiment('study_hours',studentDefaultSeed);
 export const projectExercises = {
+  'compare-models': {
+    file:{name:'iris.csv',csv:comparisonTrainingCsv(irisComparisonSplit(iris))},
+    starter:starter('iris.csv'),
+    challenge:'Build class_counts (training examples per species) and calculate root_gini for the training labels.',
+    hint:'Count labels with collections.Counter, divide counts by total rows, then subtract the sum of squared proportions from 1.',
+    tests:`import csv as _csv
+from collections import Counter as _Counter
+from math import isclose as _close
+with open("iris.csv") as _file:
+    _training = list(_csv.DictReader(_file))
+_expected = _Counter(row["species"] for row in _training)
+assert dict(class_counts) == dict(_expected), "Count training rows for every species."
+assert _close(root_gini, 1 - sum((n / len(_training))**2 for n in _expected.values())), "Use the squared class proportions."`,
+  },
   'customer-purchases': {
     file:{name:'customer-purchases.csv',csv:purchaseCsv},
     starter:`import pandas as pd

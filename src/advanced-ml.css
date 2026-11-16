@@ -1,0 +1,16 @@
+.advanced-controls { display: grid; gap: .8rem; }
+.advanced-controls > p, .advanced-controls > ol { margin: 0; }
+.advanced-control { display: grid; grid-template-columns: 1fr auto; gap: .3rem; font-weight: 600; }
+.advanced-control input { grid-column: 1 / -1; width: 100%; min-height: 24px; accent-color: var(--accent); }
+.advanced-control > span { font-variant-numeric: tabular-nums; }
+.advanced-controls :is(select,textarea) { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .5rem; }
+.advanced-controls textarea { width: 100%; }
+.advanced-controls select { margin-inline-start: .4rem; max-width: 100%; }
+.advanced-plot { display: block; width: 100%; max-width: 380px; margin-inline: auto; }
+.advanced-nodes { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,170px),1fr)); gap: .75rem; }
+.advanced-nodes > div { border: 1px solid var(--line); padding: .75rem; border-radius: 12px; }
+.advanced-nodes p { margin-block: .4rem; }
+.advanced-votes { columns: 2 150px; padding-inline-start: 1.5rem; }
+.advanced-matrix { overflow-x: auto; }
+.advanced-matrix table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.advanced-matrix :is(th,td) { border-bottom: 1px solid var(--line); padding: .4rem; text-align: start; }

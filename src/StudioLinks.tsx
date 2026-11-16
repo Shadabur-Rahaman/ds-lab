@@ -29,6 +29,7 @@ export function AnalysisLinks({open}: {open: (id: AnalysisLessonId | typeof char
 export function MlFeature({onOpen}: {onOpen: () => void}) {
   return <div className="analysis-links">
     <button className="button" onClick={onOpen}><BrainCircuit size={19}/> Machine Learning Studio <ArrowRight size={15}/></button>
+    <a className="button" href={appUrl('/learn/ml-tree')}><BrainCircuit size={19}/> Advanced Machine Learning Studio <ArrowRight size={15}/></a>
     <a className="button" href={appUrl('/projects/iris-classification')}>Iris Classification project <ArrowRight size={15}/></a>
   </div>;
 }

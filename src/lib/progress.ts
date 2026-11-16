@@ -8,7 +8,9 @@ export type Progress = Partial<Record<LearningId,{quiz:boolean;code:boolean;star
 export const validStudio = (value:unknown):value is number => typeof value==='number' && Number.isInteger(value) && value>=0 && value<=(allProjectBits|legacyProjectBit|purchaseSqlBit|purchasePythonBit);
 const mergeStudio = (left:number|undefined,right:number|undefined) =>
   left===undefined && right===undefined ? undefined : (left??0)|(right??0);
-export const lessonIds: LearningId[] = [...[...lessons, ...sqlLessons, ...analysisLessons, ...mlLessons, ...deepLessons].map(lesson => lesson.id), chartLessonId, ...Object.keys(projectCatalog) as (keyof typeof projectCatalog)[], ...statisticsPracticeIds];
+import {advancedLessons} from '../advancedLessons';
+
+export const lessonIds: LearningId[] = [...[...lessons, ...sqlLessons, ...analysisLessons, ...mlLessons, ...advancedLessons, ...deepLessons].map(lesson => lesson.id), chartLessonId, ...Object.keys(projectCatalog) as (keyof typeof projectCatalog)[], ...statisticsPracticeIds];
 export const progressKey='learning-ecosystem:ds:progress:v1';
 const time = (value:unknown) => typeof value==='number' && Number.isSafeInteger(value) && value>0 ? value : undefined;
 export function parseProgress(stored:unknown):Progress {

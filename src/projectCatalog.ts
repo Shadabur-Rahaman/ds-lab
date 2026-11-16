@@ -65,6 +65,17 @@ export const projectCatalog = {
     outcome:'Explain missing cases, data leakage and whether a model beats a baseline on the same test split.',
     question:'Which variable is unavailable before the exam?',options:['Weekly study hours','Post-exam pass indicator'],answer:1,
   },
+  'compare-models': {
+    level:'Intermediate',minutes:55,skills:['Decision trees','Random forests','Validation','Error analysis'],
+    problem:'How well do a decision tree and a random forest predict Iris species compared with a majority-class baseline?',
+    dataset:'UCI Iris, CC BY 4.0. The exercise CSV has 90 training observations. The workbench uses 30 separate validation and 30 separate test observations.',
+    prerequisite:'Classification and train/validation/test splitting',
+    goal:'Tune the models on validation data, lock a choice, then explain errors from an untouched test split.',
+    analysis:'Compare a few validation settings before locking one choice and evaluating on the test split.',
+    limitation:'One small, balanced dataset and one fixed split cannot establish the best algorithm for other data.',
+    outcome:'Compare all three models under the same evaluation protocol and explain at least one model trade-off.',
+    question:'Which split is used to select hyperparameters?',options:['Validation','Held-out test'],answer:0,
+  },
 } as const;
 
 export type ProjectId = keyof typeof projectCatalog;
@@ -81,7 +92,7 @@ export const allProjectBits = Object.values(projectBits).reduce((total, bit) => 
 export const legacyProjectBit = 64;
 export const purchaseSqlBit=128;
 export const purchasePythonBit=256;
-export const isNewCapstone=(id:string)=>id==='customer-purchases'||id==='student-performance';
+export const isNewCapstone=(id:string)=>id==='customer-purchases'||id==='student-performance'||id==='compare-models';
 export function normalizeProjectStudio(id:string,bits:number) {
   const studio=isNewCapstone(id)?bits&~legacyProjectBit:bits;
   if(id!=='customer-purchases')return studio;
